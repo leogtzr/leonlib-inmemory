@@ -19,3 +19,20 @@
 
 # Go workspace file
 go.work
+
+parser/
+junk/
+
+database-data/
+# library/
+frontend-drafts/
+tmp/
+
+/leonlib
+.env
+
+.idea/
+
+devtools.sh
+books_db.txt
+
