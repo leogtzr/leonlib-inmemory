@@ -225,10 +225,11 @@ $(document).ready(function() {
         }
     });
 
+    /*
     $('input[type="checkbox"][name="author"]').change(function() {
         $('input[type="checkbox"][name="author"]').prop('checked', false);
         $(this).prop('checked', true);
-    });
+    });*/
 
     $("input[name='author']").change(async function() {
         const author = $(this).val();

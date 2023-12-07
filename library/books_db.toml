@@ -5680,3 +5680,13 @@ description = ""
 hasBeenRead = false
 imageNames = [ "685.jpg" ]
 addedOn = "2023-11-11"
+
+[[book]]
+id = 647
+title = "Fragmentos y anotaciones sobre poesía"
+author = "Novalis"
+description = ""
+hasBeenRead = false
+imageNames = [ "686.jpg" ]
+addedOn = "2023-11-11"
+
