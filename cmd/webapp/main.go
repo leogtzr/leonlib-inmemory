@@ -56,23 +56,6 @@ func init() {
 	auth.SessionStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
 }
 
-type DBConnectionInfo struct {
-	driverName    string
-	connectionURL string
-}
-
-func getConnectionInfo() (DBConnectionInfo, error) {
-	switch dbMode {
-	case "inmemory":
-		return DBConnectionInfo{
-			driverName:    "sqlite3",
-			connectionURL: "/var/lib/appdata/leonlib.db",
-		}, nil
-	}
-
-	return DBConnectionInfo{}, fmt.Errorf("wrong DB mode")
-}
-
 func initDB() (*sql.DB, error) {
 	switch dbMode {
 	case "inmemory":

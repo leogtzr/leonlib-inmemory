@@ -7,12 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Masterminds/sprig/v3"
 	"html/template"
 	"io"
 	"leonlib/internal/auth"
 	"leonlib/internal/captcha"
 	book "leonlib/internal/types"
 	"log"
+	"math"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -31,6 +33,8 @@ const (
 	ByTitle
 	ByAuthor
 )
+
+const numberOfResultsByPage = 20
 
 type BookSearchType int
 
@@ -52,10 +56,19 @@ type PageVariablesForAuthors struct {
 }
 
 type PageResultsVariables struct {
-	Year     string
-	SiteKey  string
-	Results  []book.BookInfo
-	LoggedIn bool
+	Year         string
+	SiteKey      string
+	Results      []book.BookInfo
+	LoggedIn     bool
+	Funcs        template.FuncMap
+	Page         int
+	TotalPages   int
+	CurrentPage  int
+	PreviousPage int
+	NextPage     int
+	StartPage    int
+	EndPage      int
+	Pages        []int
 }
 
 type UserInfo struct {
@@ -167,12 +180,18 @@ func redirectToErrorPage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/error", http.StatusSeeOther)
 }
 
-func redirectToErrorPageWithMessageAndStatusCode(w http.ResponseWriter, errorMessage string, httpStatusCode int) {
+func getTemplatePath(templateFileName string) string {
 	templateDir := os.Getenv("TEMPLATE_DIR")
 	if templateDir == "" {
 		templateDir = "internal/template" // default value for local development
 	}
-	templatePath := filepath.Join(templateDir, "error5xx.html")
+	templatePath := filepath.Join(templateDir, templateFileName)
+
+	return templatePath
+}
+
+func redirectToErrorPageWithMessageAndStatusCode(w http.ResponseWriter, errorMessage string, httpStatusCode int) {
+	templatePath := getTemplatePath("error5xx.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -267,49 +286,6 @@ func getAllAuthors(db *sql.DB) ([]string, error) {
 	return authors, nil
 }
 
-func getAllBooks(db *sql.DB) ([]book.BookInfo, error) {
-	var err error
-	var queryStr = `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b ORDER BY b.author`
-
-	booksRows, err := db.Query(queryStr)
-	if err != nil {
-		return []book.BookInfo{}, err
-	}
-
-	defer booksRows.Close()
-
-	var books []book.BookInfo
-	var id int
-	var title string
-	var author string
-	var description string
-	var hasBeenRead bool
-	var addedOn time.Time
-	var goodreadsLink string
-	for booksRows.Next() {
-		var bookInfo book.BookInfo
-		if err := booksRows.Scan(&id, &title, &author, &description, &hasBeenRead, &addedOn, &goodreadsLink); err != nil {
-			return []book.BookInfo{}, err
-		}
-
-		bookInfo.ID = id
-		bookInfo.Title = title
-		bookInfo.Author = author
-		bookImages, err := getImagesByBookID(db, id)
-		if err != nil {
-			return []book.BookInfo{}, err
-		}
-
-		bookInfo.Base64Images = bookImages
-		bookInfo.Description = description
-		bookInfo.HasBeenRead = hasBeenRead
-		bookInfo.AddedOn = addedOn.Format("2006-01-02")
-		books = append(books, bookInfo)
-	}
-
-	return books, nil
-}
-
 func getImagesByBookID(db *sql.DB, bookID int) ([]book.BookImageInfo, error) {
 	bookImagesRows, err := db.Query(`SELECT i.image_id, i.book_id, i.image FROM book_images i WHERE i.book_id=$1`, bookID)
 	if err != nil {
@@ -395,8 +371,7 @@ func getBookByID(db *sql.DB, id int) (book.BookInfo, error) {
 
 func getBooksBySearchTypeCoincidence(db *sql.DB, titleSearchText string, bookSearchType BookSearchType) ([]book.BookInfo, error) {
 	var err error
-	// var queryStr = `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE LOWER(b.title) LIKE '%' || LOWER($1) || '%' ORDER BY b.title`
-	var queryStr = `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE b.title ILIKE $1 ORDER BY b.title`
+	queryStr := `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE b.title ILIKE $1 ORDER BY b.title`
 
 	if bookSearchType == ByAuthor {
 		queryStr = `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE LOWER(b.author) LIKE '%' || LOWER($1) || '%' ORDER BY b.title`
@@ -472,11 +447,7 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 		pageVariables.LoggedIn = true
 	}
 
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template" // default value for local development
-	}
-	templatePath := filepath.Join(templateDir, "index.html")
+	templatePath := getTemplatePath("index.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -520,11 +491,7 @@ func BooksByAuthorPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	pageVariables.Authors = authors
 
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template" // default value for local development
-	}
-	templatePath := filepath.Join(templateDir, "books_by_author.html")
+	templatePath := getTemplatePath("books_by_author.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -540,45 +507,146 @@ func BooksByAuthorPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AllBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	now := time.Now()
-	pageVariables := PageResultsVariables{
-		Year:    now.Format("2006"),
-		SiteKey: captcha.SiteKey,
+func getBooksWithOffsetAndLimit(db *sql.DB, offset, limit int) ([]book.BookInfo, error) {
+	query := `
+        SELECT
+            id,
+            title,
+            author,
+            description,
+            read,
+            added_on
+        FROM
+            books
+        ORDER BY
+            id
+        LIMIT
+            ?
+        OFFSET
+            ?
+    `
+
+	rows, err := db.Query(query, limit, offset)
+	if err != nil {
+		return nil, err
 	}
 
-	books, err := getAllBooks(db)
+	defer rows.Close()
+
+	books := []book.BookInfo{}
+	for rows.Next() {
+		book := book.BookInfo{}
+		err = rows.Scan(&book.ID, &book.Title, &book.Author, &book.Description, &book.HasBeenRead, &book.AddedOn)
+		if err != nil {
+			return nil, err
+		}
+		books = append(books, book)
+	}
+
+	return books, nil
+}
+
+func setUpPaginationFor(pageInt int, db *sql.DB, pageVariables *PageResultsVariables) error {
+	now := time.Now()
+
+	fmt.Println(pageInt)
+	pageVariables.Year = now.Format("2006")
+	pageVariables.SiteKey = captcha.SiteKey
+
+	totalBooks, err := getTotalBooks(db)
+	if err != nil {
+		log.Printf("Error getting total books: %v", err)
+		return err
+	}
+
+	totalPages := int(math.Ceil(float64(totalBooks) / float64(numberOfResultsByPage)))
+	pageVariables.TotalPages = totalPages
+	pageVariables.PreviousPage = pageInt - 1
+	pageVariables.CurrentPage = pageInt
+	pageVariables.NextPage = pageInt + 1
+	pageVariables.LoggedIn = false
+	pageVariables.StartPage = 1
+	pageVariables.EndPage = totalPages
+
+	start := 1
+	end := totalPages
+
+	if totalPages > 5 {
+		if pageInt > 3 {
+			start = pageInt - 2
+			end = pageInt + 2
+			if end > totalPages {
+				end = totalPages
+				start = end - 4
+			}
+		} else {
+			end = 5
+		}
+	}
+
+	var pages []int
+	for i := start; i <= end; i++ {
+		pages = append(pages, i)
+	}
+
+	pageVariables.Pages = pages
+
+	pageVariables.StartPage = start
+	pageVariables.EndPage = end
+
+	return nil
+}
+
+func AllBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	page := r.URL.Query().Get("page")
+	if page == "" {
+		page = "1"
+	}
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		log.Printf("Error converting page to int: %v", err)
+		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
+		return
+	}
+
+	offset := (pageInt - 1) * numberOfResultsByPage
+
+	books, err := getBooksWithOffsetAndLimit(db, offset, numberOfResultsByPage)
 	if err != nil {
 		log.Printf("Error getting books: %v", err)
 		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
 		return
 	}
 
-	_, err = getCurrentUserID(r)
+	pageVariables := PageResultsVariables{}
+	pageVariables.Results = books
+
+	err = setUpPaginationFor(pageInt, db, &pageVariables)
 	if err != nil {
-		log.Printf("(AllBooksPage) User is not logged in: %v", err)
-		pageVariables.LoggedIn = false
-	} else {
-		log.Println("User is logged in")
-		pageVariables.LoggedIn = true
+		log.Printf("Error setting up pagination: %v", err)
+		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
+		return
 	}
 
-	pageVariables.Results = books
+	setAuthenticationForPageResults(r, &pageVariables)
 
 	templateDir := os.Getenv("TEMPLATE_DIR")
 	if templateDir == "" {
 		templateDir = "internal/template" // default value for local development
 	}
-	templatePath := filepath.Join(templateDir, "allbooks.html")
+	templatePath := getTemplatePath("allbooks.html")
 
-	t, err := template.ParseFiles(templatePath)
+	t := template.New("").Funcs(sprig.TxtFuncMap())
+
+	tmpl, err := t.ParseFiles(templatePath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("Error parsing template: %v", err)
 		return
 	}
 
-	err = t.Execute(w, pageVariables)
+	err = tmpl.ExecuteTemplate(w, "allbooks.html", pageVariables)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("Error executing template: %v", err)
@@ -638,6 +706,25 @@ func BooksList(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(results)
+}
+
+func getTotalBooks(db *sql.DB) (int, error) {
+	queryStr := `SELECT count(*) FROM books`
+	rows, err := db.Query(queryStr)
+	if err != nil {
+		return -1, err
+	}
+
+	var count int
+
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return -1, err
+		}
+	}
+
+	return count, nil
 }
 
 func BooksCount(db *sql.DB, w http.ResponseWriter) {
@@ -714,11 +801,7 @@ func SearchBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Results: results,
 	}
 
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template"
-	}
-	templatePath := filepath.Join(templateDir, "search_books.html")
+	templatePath := getTemplatePath("search_books.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -740,7 +823,7 @@ func ErrorPage(w http.ResponseWriter, _ *http.Request) {
 	if templateDir == "" {
 		templateDir = "internal/template"
 	}
-	templatePath := filepath.Join(templateDir, "error5xx.html")
+	templatePath := getTemplatePath("error5xx.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -833,6 +916,15 @@ func Auth0Callback(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func setAuthenticationForPageResults(r *http.Request, pageResultsVariables *PageResultsVariables) {
+	if _, err := getCurrentUserID(r); err != nil {
+		log.Printf("error: checking authentication information for user '%v'", err)
+		pageResultsVariables.LoggedIn = false
+	} else {
+		pageResultsVariables.LoggedIn = true
+	}
+}
+
 func CheckLikeStatus(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	userID, err := getCurrentUserID(r)
 	if err != nil {
@@ -879,7 +971,7 @@ func CheckLikeStatus(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 func LikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	userID, err := getCurrentUserID(r)
 	if err != nil {
-		http.Error(w, "2) Error al obtener información de la sesión", http.StatusInternalServerError)
+		http.Error(w, "Error al obtener información de la sesión", http.StatusInternalServerError)
 		return
 	}
 
@@ -900,7 +992,7 @@ func LikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func AddBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	err := r.ParseMultipartForm(2 << 20) // Por ejemplo, 10 MB
+	err := r.ParseMultipartForm(2 << 20)
 	if err != nil {
 		log.Printf("1) error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1082,12 +1174,7 @@ func InfoBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Results: []book.BookInfo{bookByID},
 	}
 
-	_, err = getCurrentUserID(r)
-	if err != nil {
-		pageVariables.LoggedIn = false
-	} else {
-		pageVariables.LoggedIn = true
-	}
+	setAuthenticationForPageResults(r, &pageVariables)
 
 	templateDir := os.Getenv("TEMPLATE_DIR")
 	if templateDir == "" {
@@ -1290,11 +1377,7 @@ func AboutPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func ContactPage(w http.ResponseWriter, _ *http.Request) {
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template" // default value for local development
-	}
-	templatePath := filepath.Join(templateDir, "contact.html")
+	templatePath := getTemplatePath("contact.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -1337,11 +1420,7 @@ func AddBookPage(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("debug:x email=(%s)\n", email)
 	*/
 
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template" // default value for local development
-	}
-	templatePath := filepath.Join(templateDir, "add_book.html")
+	templatePath := getTemplatePath("add_book.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
