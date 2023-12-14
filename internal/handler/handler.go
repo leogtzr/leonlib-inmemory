@@ -549,7 +549,6 @@ func getBooksWithOffsetAndLimit(db *sql.DB, offset, limit int) ([]book.BookInfo,
 func setUpPaginationFor(pageInt int, db *sql.DB, pageVariables *PageResultsVariables) error {
 	now := time.Now()
 
-	fmt.Println(pageInt)
 	pageVariables.Year = now.Format("2006")
 	pageVariables.SiteKey = captcha.SiteKey
 
@@ -994,7 +993,7 @@ func LikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 func AddBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(2 << 20)
 	if err != nil {
-		log.Printf("1) error: %v", err)
+		log.Printf("error adding book: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -1176,11 +1175,7 @@ func InfoBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	setAuthenticationForPageResults(r, &pageVariables)
 
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template" // default value for local development
-	}
-	templatePath := filepath.Join(templateDir, "book_info.html")
+	templatePath := getTemplatePath("book_info.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -1328,11 +1323,7 @@ func ModifyBookPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	//}
 	pageVariables.LoggedIn = true
 
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template" // default value for local development
-	}
-	templatePath := filepath.Join(templateDir, "modify.html")
+	templatePath := getTemplatePath("modify.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -1349,11 +1340,7 @@ func ModifyBookPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func AboutPage(w http.ResponseWriter, r *http.Request) {
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "internal/template" // default value for local development
-	}
-	templatePath := filepath.Join(templateDir, "about.html")
+	templatePath := getTemplatePath("about.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
