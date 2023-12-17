@@ -759,8 +759,6 @@ func SearchBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		searchTypesParams = []string{"byTitle"}
 	}
 
-	fmt.Printf("debug:x textSearch=(%s), searchTypesParams=(%s)\n", bookQuery, searchTypesParams)
-
 	var results []book.BookInfo
 	var err error
 
@@ -1207,9 +1205,6 @@ func ModifyBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	description := r.FormValue("description")
 	read := r.FormValue("read") == "on"
 	goodreadsLink := r.FormValue("goodreadsLink")
-
-	fmt.Printf("debug:x bookID=(%s), title=(%s), author=(%s), description=(%s), read=(%t), goodreadsLink=(%s)\n",
-		bookIDParam, title, author, description, read, goodreadsLink)
 
 	id, err := strconv.Atoi(bookIDParam)
 	if err != nil {
