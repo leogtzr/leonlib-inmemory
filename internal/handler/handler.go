@@ -371,7 +371,7 @@ func getBookByID(db *sql.DB, id int) (book.BookInfo, error) {
 
 func getBooksBySearchTypeCoincidence(db *sql.DB, titleSearchText string, bookSearchType BookSearchType) ([]book.BookInfo, error) {
 	var err error
-	queryStr := `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE b.title ILIKE $1 ORDER BY b.title`
+	queryStr := `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE LOWER(b.title) LIKE '%' || LOWER($1) || '%' ORDER BY b.title`
 
 	if bookSearchType == ByAuthor {
 		queryStr = `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE LOWER(b.author) LIKE '%' || LOWER($1) || '%' ORDER BY b.title`
@@ -770,6 +770,7 @@ func SearchBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		case ByTitle:
 			booksByTitle, err := getBooksBySearchTypeCoincidence(db, bookQuery, ByTitle)
 			if err != nil {
+				log.Printf("error: %v", err)
 				redirectToErrorPageWithMessageAndStatusCode(w, "Error getting information from the database", http.StatusInternalServerError)
 
 				return
