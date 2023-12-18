@@ -519,7 +519,7 @@ func getBooksWithOffsetAndLimit(db *sql.DB, offset, limit int) ([]book.BookInfo,
         FROM
             books
         ORDER BY
-            id
+            title
         LIMIT
             ?
         OFFSET
