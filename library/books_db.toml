@@ -5690,3 +5690,12 @@ hasBeenRead = false
 imageNames = [ "686.jpg" ]
 addedOn = "2023-11-11"
 
+[[book]]
+id = 648
+title = "Vida contemplativa"
+author = "Byung-Chul Han"
+description = ""
+hasBeenRead = false
+imageNames = [ "vida-contemplativa.jpg" ]
+addedOn = "2023-12-16"
+
