@@ -5699,3 +5699,12 @@ hasBeenRead = false
 imageNames = [ "vida-contemplativa.jpg" ]
 addedOn = "2023-12-16"
 
+[[book]]
+id = 649
+title = "Trilogía"
+author = "Jon Fosse"
+description = ""
+hasBeenRead = false
+imageNames = [ "trilogia.jpg" ]
+addedOn = "2023-12-30"
+
