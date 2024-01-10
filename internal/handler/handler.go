@@ -330,7 +330,7 @@ func getBookByID(db *sql.DB, id int) (book.BookInfo, error) {
 	}
 
 	defer func() {
-		bookRows.Close()
+		_ = bookRows.Close()
 	}()
 
 	var bookInfo book.BookInfo
@@ -1093,15 +1093,20 @@ func CreateDBFromFile(db *sql.DB, w http.ResponseWriter) {
 
 	for _, book := range library.Book {
 		log.Printf("Reading: (%s)", book)
+		bookInfo, err := getBookByID(db, book.ID)
+		if err == nil && bookInfo.ID == book.ID {
+			log.Printf("Book with ID: %d already exists, skipping", book.ID)
+			continue
+		}
 
 		var bookID int
-		stmt, err := db.Prepare("INSERT INTO books(title, author, description, read, added_on, goodreads_link) VALUES($1, $2, $3, $4, $5, $6) RETURNING id")
+		stmt, err := db.Prepare("INSERT INTO books(id, title, author, description, read, added_on, goodreads_link) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id")
 		if err != nil {
 			writeErrorGeneralStatus(w, err)
 			return
 		}
 
-		err = stmt.QueryRow(book.Title, book.Author, book.Description, book.HasBeenRead, book.AddedOn, book.GoodreadsLink).Scan(&bookID)
+		err = stmt.QueryRow(book.ID, book.Title, book.Author, book.Description, book.HasBeenRead, book.AddedOn, book.GoodreadsLink).Scan(&bookID)
 		if err != nil {
 			writeErrorGeneralStatus(w, err)
 			return
