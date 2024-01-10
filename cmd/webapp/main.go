@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/gorilla/sessions"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/oauth2"
 	"leonlib/internal/auth"
@@ -21,6 +22,11 @@ import (
 
 var (
 	dbMode      = os.Getenv("DB_MODE")
+	dbHost      = os.Getenv("PGHOST")
+	dbUser      = os.Getenv("PGUSER")
+	dbPassword  = os.Getenv("POSTGRES_PASSWORD")
+	dbName      = os.Getenv("PGDATABASE")
+	dbPort      = os.Getenv("PGPORT")
 	ctx         = context.Background()
 	mainAppUser = os.Getenv("LEONLIB_MAINAPP_USER")
 	DB          *sql.DB
@@ -57,9 +63,37 @@ func init() {
 }
 
 func initDB() (*sql.DB, error) {
+	var err error
 	switch dbMode {
 	case "inmemory":
-		return sql.Open("sqlite3", "/var/lib/appdata/leonlib.db")
+		DB, err = sql.Open("sqlite3", "/var/lib/appdata/leonlib.db")
+		if err != nil {
+			return nil, err
+		}
+		err = createDB(DB)
+		if err != nil {
+			return nil, err
+		}
+		err = addBooksToDatabase(DB)
+		if err != nil {
+			return nil, err
+		}
+
+		return DB, nil
+
+	case "postgres":
+		var psqlInfo string
+
+		psqlInfo = "host=" + dbHost + " port=" + dbPort + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " sslmode=disable"
+
+		fmt.Printf("debug:x connection=(%s)\n", psqlInfo)
+
+		DB, err = sql.Open("postgres", psqlInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		return DB, nil
 	}
 
 	return nil, fmt.Errorf("wrong DB mode")
@@ -171,16 +205,6 @@ func main() {
 	defer func() {
 		_ = DB.Close()
 	}()
-
-	err = createDB(DB)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = addBooksToDatabase(DB)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	err = DB.Ping()
 	if err != nil {

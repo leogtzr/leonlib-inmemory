@@ -16,7 +16,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.postgres
     container_name: app
     ports:
       - "8180:8180"

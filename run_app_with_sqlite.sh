@@ -10,6 +10,6 @@ export DB_MODE="inmemory"
 export PORT=8180
 export PGPORT=5432
 
-docker-compose up --build
+docker-compose -f docker-compose.sqlite.yml up --build
 
 exit

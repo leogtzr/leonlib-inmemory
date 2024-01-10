@@ -508,23 +508,10 @@ func BooksByAuthorPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBooksWithOffsetAndLimit(db *sql.DB, offset, limit int) ([]book.BookInfo, error) {
-	query := `
-        SELECT
-            id,
-            title,
-            author,
-            description,
-            read,
-            added_on
-        FROM
-            books
-        ORDER BY
-            title
-        LIMIT
-            ?
-        OFFSET
-            ?
-    `
+	query := `SELECT id, title, author, description, read, added_on FROM books ORDER BY title LIMIT $1 OFFSET $2;`
+
+	// fmt.Printf("debug:x (%d), (%d)\n", offset, limit)
+	fmt.Printf("query=(%s)\n", query)
 
 	rows, err := db.Query(query, limit, offset)
 	if err != nil {
