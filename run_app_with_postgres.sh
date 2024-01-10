@@ -10,7 +10,6 @@ export DB_MODE="postgres"
 export PORT=8180
 export PGPORT=5432
 
-# docker-compose up --build
 docker-compose -f docker-compose.postgres.yml up --build
 
 exit
