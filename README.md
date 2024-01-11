@@ -1,9 +1,10 @@
 # leonlib
 These are the books I own in my personal library
 
-![shelf](./images/leonlib-shelfs.jpeg)
+![shelf](./assets/images/leonlib-shelfs.jpg)
 
 The objective of this simple application is to expose a way to explore the inventory of books I own.
+I confess that I have bought the same book multiple times due to not knowing that I already have it.
 
 
 ## Technical Details

@@ -1,18 +1,6 @@
 version: '3.8'
 
 services:
-  books_db:
-    container_name: leonlib
-    image: postgres:latest
-    environment:
-      - POSTGRES_PASSWORD=${LEONLIB_DB_PASSWORD}
-      - POSTGRES_USER=${LEONLIB_DB_USER}
-      - POSTGRES_DB=${LEONLIB_DB}
-      - PGPASSWORD=${LEONLIB_DB_PASSWORD}
-    volumes:
-      - ./database-data:/var/lib/postgresql/data/
-      - ./database/sql:/docker-entrypoint-initdb.d/
-
   app:
     build:
       context: .
@@ -35,13 +23,6 @@ services:
       - AUTH0_DOMAIN=${AUTH0_DOMAIN}
       - SESSION_SECRET=${SESSION_SECRET}
       - LEONLIB_MAINAPP_USER=${LEONLIB_MAINAPP_USER}
-      - POSTGRES_PASSWORD=${LEONLIB_DB_PASSWORD}
-      - PGUSER=${LEONLIB_DB_USER}
-      - PGDATABASE=${LEONLIB_DB}
-      - PGHOST=${LEONLIB_DB_HOST}
-      - PGPORT=${PGPORT}
-    depends_on:
-      - books_db
 
 volumes:
   database-data:

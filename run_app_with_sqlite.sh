@@ -7,7 +7,6 @@ export LEONLIB_DB_HOST="leonlib"
 # inmemory (sqlite) or postgres
 export DB_MODE="inmemory"
 export PORT=8180
-export PGPORT=5432
 
 docker-compose -f docker-compose.sqlite.yml up --build
 
