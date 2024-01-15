@@ -2,6 +2,7 @@ package dao
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	book "leonlib/internal/types"
 )
@@ -86,4 +87,133 @@ func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, err
 	}
 
 	return bookDAO, nil
+}
+
+func getAllAuthors(db *sql.DB) ([]string, error) {
+	var err error
+
+	allAuthorsRows, err := db.Query("SELECT DISTINCT author FROM books ORDER BY author")
+	if err != nil {
+		return []string{}, err
+	}
+
+	defer allAuthorsRows.Close()
+
+	var authors []string
+	for allAuthorsRows.Next() {
+		var author string
+		if err := allAuthorsRows.Scan(&author); err != nil {
+			return []string{}, err
+		}
+		authors = append(authors, author)
+	}
+
+	return authors, nil
+}
+
+func addImageToBook(bookID int, imageData []byte, db *sql.DB) error {
+	if len(imageData) == 0 {
+		return nil
+	}
+
+	imgStmt, err := db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
+	if err != nil {
+		return err
+	}
+
+	_, err = imgStmt.Exec(bookID, imageData)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getBookCount(db *sql.DB) (int, error) {
+	rows, err := db.Query(`SELECT count(*) FROM books`)
+	if err != nil {
+		return -1, err
+	}
+
+	var count int
+
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return -1, err
+		}
+	}
+
+	return count, nil
+}
+
+func getBooksWithPagination(offset, limit int, db *sql.DB) ([]book.BookInfo, error) {
+	query := `SELECT id, title, author, description, read, added_on FROM books ORDER BY title LIMIT $1 OFFSET $2;`
+
+	rows, err := db.Query(query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	books := []book.BookInfo{}
+	for rows.Next() {
+		book := book.BookInfo{}
+		err = rows.Scan(&book.ID, &book.Title, &book.Author, &book.Description, &book.HasBeenRead, &book.AddedOn)
+		if err != nil {
+			return nil, err
+		}
+		books = append(books, book)
+	}
+
+	return books, nil
+}
+
+func addUser(db *sql.DB, userID, email, name, oauthIdentifier string) error {
+	_, err := db.Exec(`
+			INSERT INTO users(user_id, email, name, oauth_identifier) 
+			VALUES($1, $2, $3, $4)
+			ON CONFLICT(user_id) DO UPDATE
+			SET email = $2, name = $3`, userID, email, name, "Google")
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getImagesByBookID(bookID int, db *sql.DB) ([]book.BookImageInfo, error) {
+	bookImagesRows, err := db.Query(`SELECT i.image_id, i.book_id, i.image FROM book_images i WHERE i.book_id=$1`, bookID)
+	if err != nil {
+		return []book.BookImageInfo{}, err
+	}
+
+	defer func() {
+		_ = bookImagesRows.Close()
+	}()
+
+	var images []book.BookImageInfo
+
+	for bookImagesRows.Next() {
+		var imageID int
+		var bookID int
+		var base64Image []byte
+		if err = bookImagesRows.Scan(&imageID, &bookID, &base64Image); err != nil {
+			return []book.BookImageInfo{}, err
+		}
+
+		if len(base64Image) > 0 {
+			encodedImage := base64.StdEncoding.EncodeToString(base64Image)
+			bookImageInfo := book.BookImageInfo{
+				ImageID: imageID,
+				BookID:  bookID,
+				Image:   encodedImage,
+			}
+			images = append(images, bookImageInfo)
+		}
+	}
+
+	return images, nil
 }

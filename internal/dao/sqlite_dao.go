@@ -2,7 +2,6 @@ package dao
 
 import (
 	"database/sql"
-	"encoding/base64"
 	"github.com/BurntSushi/toml"
 	book "leonlib/internal/types"
 	"log"
@@ -151,39 +150,15 @@ func (dao *sqliteBookDAO) AddAll(books []book.BookInfo) error {
 }
 
 func (dao *sqliteBookDAO) AddImageToBook(bookID int, imageData []byte) error {
-	if len(imageData) == 0 {
-		return nil
-	}
-
-	imgStmt, err := dao.db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
-	if err != nil {
-		return err
-	}
-
-	_, err = imgStmt.Exec(bookID, imageData)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return addImageToBook(bookID, imageData, dao.db)
 }
 
 func (dao *sqliteBookDAO) AddUser(userID, email, name, oauthIdentifier string) error {
-	_, err := dao.db.Exec(`
-			INSERT INTO users(user_id, email, name, oauth_identifier) 
-			VALUES($1, $2, $3, $4)
-			ON CONFLICT(user_id) DO UPDATE
-			SET email = $2, name = $3`, userID, email, name, "Google")
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return addUser(dao.db, userID, email, name, oauthIdentifier)
 }
 
 func (dao *sqliteBookDAO) Close() error {
-	return nil
+	return dao.db.Close()
 }
 
 func (dao *sqliteBookDAO) CreateBook(book book.BookInfo) error {
@@ -202,25 +177,7 @@ func (dao *sqliteBookDAO) CreateBook(book book.BookInfo) error {
 }
 
 func (dao *sqliteBookDAO) GetAllAuthors() ([]string, error) {
-	var err error
-
-	allAuthorsRows, err := dao.db.Query("SELECT DISTINCT author FROM books ORDER BY author")
-	if err != nil {
-		return []string{}, err
-	}
-
-	defer allAuthorsRows.Close()
-
-	var authors []string
-	for allAuthorsRows.Next() {
-		var author string
-		if err := allAuthorsRows.Scan(&author); err != nil {
-			return []string{}, err
-		}
-		authors = append(authors, author)
-	}
-
-	return authors, nil
+	return getAllAuthors(dao.db)
 }
 
 func (dao *sqliteBookDAO) GetBookByID(id int) (book.BookInfo, error) {
@@ -273,44 +230,11 @@ func (dao *sqliteBookDAO) GetBookByID(id int) (book.BookInfo, error) {
 }
 
 func (dao *sqliteBookDAO) GetBookCount() (int, error) {
-	rows, err := dao.db.Query(`SELECT count(*) FROM books`)
-	if err != nil {
-		return -1, err
-	}
-
-	var count int
-
-	for rows.Next() {
-		err := rows.Scan(&count)
-		if err != nil {
-			return -1, err
-		}
-	}
-
-	return count, nil
+	return getBookCount(dao.db)
 }
 
 func (dao *sqliteBookDAO) GetBooksWithPagination(offset, limit int) ([]book.BookInfo, error) {
-	query := `SELECT id, title, author, description, read, added_on FROM books ORDER BY title LIMIT $1 OFFSET $2;`
-
-	rows, err := dao.db.Query(query, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	books := []book.BookInfo{}
-	for rows.Next() {
-		book := book.BookInfo{}
-		err = rows.Scan(&book.ID, &book.Title, &book.Author, &book.Description, &book.HasBeenRead, &book.AddedOn)
-		if err != nil {
-			return nil, err
-		}
-		books = append(books, book)
-	}
-
-	return books, nil
+	return getBooksWithPagination(offset, limit, dao.db)
 }
 
 func (dao *sqliteBookDAO) GetBooksBySearchTypeCoincidence(titleSearchText string, bookSearchType book.BookSearchType) ([]book.BookInfo, error) {
@@ -361,37 +285,7 @@ func (dao *sqliteBookDAO) GetBooksBySearchTypeCoincidence(titleSearchText string
 }
 
 func (dao *sqliteBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, error) {
-	bookImagesRows, err := dao.db.Query(`SELECT i.image_id, i.book_id, i.image FROM book_images i WHERE i.book_id=$1`, bookID)
-	if err != nil {
-		return []book.BookImageInfo{}, err
-	}
-
-	defer func() {
-		_ = bookImagesRows.Close()
-	}()
-
-	var images []book.BookImageInfo
-
-	for bookImagesRows.Next() {
-		var imageID int
-		var bookID int
-		var base64Image []byte
-		if err = bookImagesRows.Scan(&imageID, &bookID, &base64Image); err != nil {
-			return []book.BookImageInfo{}, err
-		}
-
-		if len(base64Image) > 0 {
-			encodedImage := base64.StdEncoding.EncodeToString(base64Image)
-			bookImageInfo := book.BookImageInfo{
-				ImageID: imageID,
-				BookID:  bookID,
-				Image:   encodedImage,
-			}
-			images = append(images, bookImageInfo)
-		}
-	}
-
-	return images, nil
+	return getImagesByBookID(bookID, dao.db)
 }
 
 func (dao *sqliteBookDAO) LikedBy(bookID, userID string) (bool, error) {
@@ -438,7 +332,6 @@ func (dao *sqliteBookDAO) LikesCount(bookID int) (int, error) {
 }
 
 func (dao *sqliteBookDAO) Ping() error {
-	// TODO: pending...
 	return nil
 }
 

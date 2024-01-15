@@ -2,47 +2,60 @@ package dao
 
 import (
 	"database/sql"
-	"encoding/base64"
-	"fmt"
 	book "leonlib/internal/types"
+	"log"
+	"os"
+	"path/filepath"
 	"time"
 )
 
 func (dao *postgresBookDAO) AddAll(books []book.BookInfo) error {
-	// TODO: pending...
+	for _, book := range books {
+		log.Printf("Reading: (%s)", book)
+		bookInfo, err := dao.GetBookByID(book.ID)
+		if err == nil && bookInfo.ID == book.ID {
+			log.Printf("Book with ID: %d already exists, skipping", book.ID)
+			continue
+		}
+
+		var bookID int
+		stmt, err := dao.db.Prepare("INSERT INTO books(id, title, author, description, read, added_on, goodreads_link) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id")
+		if err != nil {
+			return err
+		}
+
+		err = stmt.QueryRow(book.ID, book.Title, book.Author, book.Description, book.HasBeenRead, book.AddedOn, book.GoodreadsLink).Scan(&bookID)
+		if err != nil {
+			return err
+		}
+
+		for _, imageName := range book.ImageNames {
+			imgBytes, err := os.ReadFile(filepath.Join("images", imageName))
+			if err != nil {
+				return err
+			}
+
+			imgStmt, err := dao.db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
+			if err != nil {
+				return err
+			}
+
+			_, err = imgStmt.Exec(bookID, imgBytes)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
 func (dao *postgresBookDAO) AddImageToBook(bookID int, imageData []byte) error {
-	if len(imageData) == 0 {
-		return nil
-	}
-
-	imgStmt, err := dao.db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
-	if err != nil {
-		return err
-	}
-
-	_, err = imgStmt.Exec(bookID, imageData)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return addImageToBook(bookID, imageData, dao.db)
 }
 
 func (dao *postgresBookDAO) AddUser(userID, email, name, oauthIdentifier string) error {
-	_, err := dao.db.Exec(`
-			INSERT INTO users(user_id, email, name, oauth_identifier) 
-			VALUES($1, $2, $3, $4)
-			ON CONFLICT(user_id) DO UPDATE
-			SET email = $2, name = $3`, userID, email, name, "Google")
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return addUser(dao.db, userID, email, name, oauthIdentifier)
 }
 
 func (dao *postgresBookDAO) Close() error {
@@ -65,25 +78,7 @@ func (dao *postgresBookDAO) CreateBook(book book.BookInfo) error {
 }
 
 func (dao *postgresBookDAO) GetAllAuthors() ([]string, error) {
-	var err error
-
-	allAuthorsRows, err := dao.db.Query("SELECT DISTINCT author FROM books ORDER BY author")
-	if err != nil {
-		return []string{}, err
-	}
-
-	defer allAuthorsRows.Close()
-
-	var authors []string
-	for allAuthorsRows.Next() {
-		var author string
-		if err := allAuthorsRows.Scan(&author); err != nil {
-			return []string{}, err
-		}
-		authors = append(authors, author)
-	}
-
-	return authors, nil
+	return getAllAuthors(dao.db)
 }
 
 func (dao *postgresBookDAO) GetBookByID(id int) (book.BookInfo, error) {
@@ -136,46 +131,11 @@ func (dao *postgresBookDAO) GetBookByID(id int) (book.BookInfo, error) {
 }
 
 func (dao *postgresBookDAO) GetBookCount() (int, error) {
-	rows, err := dao.db.Query(`SELECT count(*) FROM books`)
-	if err != nil {
-		return -1, err
-	}
-
-	var count int
-
-	for rows.Next() {
-		err := rows.Scan(&count)
-		if err != nil {
-			return -1, err
-		}
-	}
-
-	return count, nil
+	return getBookCount(dao.db)
 }
 
 func (dao *postgresBookDAO) GetBooksWithPagination(offset, limit int) ([]book.BookInfo, error) {
-	query := `SELECT id, title, author, description, read, added_on FROM books ORDER BY title LIMIT $1 OFFSET $2;`
-
-	fmt.Printf("query=(%s)\n", query)
-
-	rows, err := dao.db.Query(query, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	books := []book.BookInfo{}
-	for rows.Next() {
-		book := book.BookInfo{}
-		err = rows.Scan(&book.ID, &book.Title, &book.Author, &book.Description, &book.HasBeenRead, &book.AddedOn)
-		if err != nil {
-			return nil, err
-		}
-		books = append(books, book)
-	}
-
-	return books, nil
+	return getBooksWithPagination(offset, limit, dao.db)
 }
 
 func (dao *postgresBookDAO) GetBooksBySearchTypeCoincidence(titleSearchText string, bookSearchType book.BookSearchType) ([]book.BookInfo, error) {
@@ -226,37 +186,7 @@ func (dao *postgresBookDAO) GetBooksBySearchTypeCoincidence(titleSearchText stri
 }
 
 func (dao *postgresBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, error) {
-	bookImagesRows, err := dao.db.Query(`SELECT i.image_id, i.book_id, i.image FROM book_images i WHERE i.book_id=$1`, bookID)
-	if err != nil {
-		return []book.BookImageInfo{}, err
-	}
-
-	defer func() {
-		_ = bookImagesRows.Close()
-	}()
-
-	var images []book.BookImageInfo
-
-	for bookImagesRows.Next() {
-		var imageID int
-		var bookID int
-		var base64Image []byte
-		if err = bookImagesRows.Scan(&imageID, &bookID, &base64Image); err != nil {
-			return []book.BookImageInfo{}, err
-		}
-
-		if len(base64Image) > 0 {
-			encodedImage := base64.StdEncoding.EncodeToString(base64Image)
-			bookImageInfo := book.BookImageInfo{
-				ImageID: imageID,
-				BookID:  bookID,
-				Image:   encodedImage,
-			}
-			images = append(images, bookImageInfo)
-		}
-	}
-
-	return images, nil
+	return getImagesByBookID(bookID, dao.db)
 }
 
 func (dao *postgresBookDAO) LikedBy(bookID, userID string) (bool, error) {

@@ -536,12 +536,6 @@ func BooksList(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 		bookDetail.Title = book.Title
 		bookDetail.Author = book.Author
 		bookDetail.Description = book.Description
-
-		fmt.Printf("debug:abc %d\n", len(book.Base64Images))
-		for _, img := range book.Base64Images {
-			// fmt.Printf("debug:xx img=(%s)\n", img)
-			fmt.Printf("debug:xyz bID=%d, iID=%d, %t\n", img.BookID, img.ImageID, len(img.Image) > 0)
-		}
 		bookDetail.Base64Images = book.Base64Images
 
 		results = append(results, bookDetail)
