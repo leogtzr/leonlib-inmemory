@@ -246,6 +246,8 @@ $(document).ready(function() {
                         book.images.forEach(image => {
                             imagesHtml += `<img src="data:image/jpeg;base64,${image.Image}" class="card-img-bottom" alt="Image of ${book.title}">`;
                         });
+                    } else {
+                        console.log('No images...');
                     }
 
                     $("#booksList").append(`

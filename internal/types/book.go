@@ -16,6 +16,26 @@ type BookInfo struct {
 	GoodreadsLink string
 }
 
+type BookSearchType int
+
+const (
+	Unknown BookSearchType = iota
+	ByTitle
+	ByAuthor
+)
+
+func (bt BookSearchType) String() string {
+	switch bt {
+	case ByTitle:
+		return "ByTitle"
+	case ByAuthor:
+		return "ByAuthor"
+	default:
+		return "Unknown"
+	}
+}
+
+// BookImageInfo ...
 type BookImageInfo struct {
 	ImageID int
 	BookID  int

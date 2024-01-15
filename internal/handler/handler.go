@@ -12,10 +12,10 @@ import (
 	"io"
 	"leonlib/internal/auth"
 	"leonlib/internal/captcha"
+	"leonlib/internal/dao"
 	book "leonlib/internal/types"
 	"log"
 	"math"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -28,15 +28,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const (
-	Unknown BookSearchType = iota
-	ByTitle
-	ByAuthor
-)
-
 const numberOfResultsByPage = 20
-
-type BookSearchType int
 
 type RequestData struct {
 	BookID string `json:"book_id"`
@@ -89,17 +81,6 @@ func (ui UserInfo) String() string {
 	return fmt.Sprintf("Name=(%s), email=(%s), nickname=(%s), verified=(%t), sub=(%s)", ui.Name, ui.Email, ui.Nickname, ui.Verified, ui.Sub)
 }
 
-func (bt BookSearchType) String() string {
-	switch bt {
-	case ByTitle:
-		return "ByTitle"
-	case ByAuthor:
-		return "ByAuthor"
-	default:
-		return "Unknown"
-	}
-}
-
 func generateRandomString(length int) string {
 	b := make([]byte, length)
 	_, err := rand.Read(b)
@@ -130,14 +111,14 @@ func getDatabaseEmailFromSessionID(db *sql.DB, userID string) (string, error) {
 	return email, nil
 }
 
-func parseBookSearchType(input string) BookSearchType {
+func parseBookSearchType(input string) book.BookSearchType {
 	switch strings.TrimSpace(strings.ToLower(input)) {
 	case "bytitle":
-		return ByTitle
+		return book.ByTitle
 	case "byauthor":
-		return ByAuthor
+		return book.ByAuthor
 	default:
-		return Unknown
+		return book.Unknown
 	}
 }
 
@@ -286,136 +267,6 @@ func getAllAuthors(db *sql.DB) ([]string, error) {
 	return authors, nil
 }
 
-func getImagesByBookID(db *sql.DB, bookID int) ([]book.BookImageInfo, error) {
-	bookImagesRows, err := db.Query(`SELECT i.image_id, i.book_id, i.image FROM book_images i WHERE i.book_id=$1`, bookID)
-	if err != nil {
-		return []book.BookImageInfo{}, err
-	}
-
-	defer func() {
-		_ = bookImagesRows.Close()
-	}()
-
-	var images []book.BookImageInfo
-
-	for bookImagesRows.Next() {
-		var imageID int
-		var bookID int
-		var base64Image []byte
-		if err = bookImagesRows.Scan(&imageID, &bookID, &base64Image); err != nil {
-			return []book.BookImageInfo{}, err
-		}
-
-		if len(base64Image) > 0 {
-			encodedImage := base64.StdEncoding.EncodeToString(base64Image)
-			bookImageInfo := book.BookImageInfo{
-				ImageID: imageID,
-				BookID:  bookID,
-				Image:   encodedImage,
-			}
-			images = append(images, bookImageInfo)
-		}
-	}
-
-	return images, nil
-}
-
-func getBookByID(db *sql.DB, id int) (book.BookInfo, error) {
-	var err error
-	var queryStr = `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE b.id=$1`
-
-	bookRows, err := db.Query(queryStr, id)
-	if err != nil {
-		return book.BookInfo{}, err
-	}
-
-	defer func() {
-		_ = bookRows.Close()
-	}()
-
-	var bookInfo book.BookInfo
-	var bookID int
-	var title string
-	var author string
-	var description string
-	var hasBeenRead bool
-	var addedOn time.Time
-	var goodreadsLink sql.NullString
-	if bookRows.Next() {
-		if err := bookRows.Scan(&bookID, &title, &author, &description, &hasBeenRead, &addedOn, &goodreadsLink); err != nil {
-			return book.BookInfo{}, err
-		}
-
-		bookInfo.ID = bookID
-		bookInfo.Title = title
-		bookInfo.Author = author
-		bookInfo.Description = description
-		bookInfo.HasBeenRead = hasBeenRead
-		bookInfo.AddedOn = addedOn.Format("2006-01-02")
-		if goodreadsLink.Valid {
-			bookInfo.GoodreadsLink = goodreadsLink.String
-		} else {
-			bookInfo.GoodreadsLink = "" // o cualquier valor predeterminado
-		}
-	}
-
-	bookImages, err := getImagesByBookID(db, id)
-	if err != nil {
-		return book.BookInfo{}, err
-	}
-
-	bookInfo.Base64Images = bookImages
-
-	return bookInfo, nil
-}
-
-func getBooksBySearchTypeCoincidence(db *sql.DB, titleSearchText string, bookSearchType BookSearchType) ([]book.BookInfo, error) {
-	var err error
-	queryStr := `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE LOWER(b.title) LIKE '%' || LOWER($1) || '%' ORDER BY b.title`
-
-	if bookSearchType == ByAuthor {
-		queryStr = `SELECT b.id, b.title, b.author, b.description, b.read, b.added_on, b.goodreads_link FROM books b WHERE LOWER(b.author) LIKE '%' || LOWER($1) || '%' ORDER BY b.title`
-	}
-
-	booksByTitleRows, err := db.Query(queryStr, "%"+titleSearchText+"%")
-	if err != nil {
-		return []book.BookInfo{}, err
-	}
-
-	defer booksByTitleRows.Close()
-
-	var books []book.BookInfo
-	var id int
-	var title string
-	var author string
-	var description string
-	var hasBeenRead bool
-	var addedOn time.Time
-	var goodreadsLink string
-	for booksByTitleRows.Next() {
-		var bookInfo book.BookInfo
-		if err := booksByTitleRows.Scan(&id, &title, &author, &description, &hasBeenRead, &addedOn, &goodreadsLink); err != nil {
-			return []book.BookInfo{}, err
-		}
-
-		bookInfo.ID = id
-		bookInfo.Title = title
-		bookInfo.Author = author
-		bookImages, err := getImagesByBookID(db, id)
-		if err != nil {
-			return []book.BookInfo{}, err
-		}
-
-		bookInfo.Base64Images = bookImages
-		bookInfo.Description = description
-		bookInfo.HasBeenRead = hasBeenRead
-		bookInfo.AddedOn = addedOn.Format("2006-01-02")
-		books = append(books, bookInfo)
-	}
-
-	return books, nil
-}
-
 func uniqueSearchTypes(searchTypes []string) []string {
 	set := make(map[string]struct{})
 	var result []string
@@ -466,14 +317,14 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func BooksByAuthorPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func BooksByAuthorPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	pageVariables := PageVariablesForAuthors{
 		Year:    now.Format("2006"),
 		SiteKey: captcha.SiteKey,
 	}
 
-	authors, err := getAllAuthors(db)
+	authors, err := (*dao).GetAllAuthors()
 	if err != nil {
 		log.Printf("Error getting authors: %v", err)
 		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
@@ -507,7 +358,7 @@ func BooksByAuthorPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getBooksWithOffsetAndLimit(db *sql.DB, offset, limit int) ([]book.BookInfo, error) {
+func getBooksWithPagination(db *sql.DB, offset, limit int) ([]book.BookInfo, error) {
 	query := `SELECT id, title, author, description, read, added_on FROM books ORDER BY title LIMIT $1 OFFSET $2;`
 
 	// fmt.Printf("debug:x (%d), (%d)\n", offset, limit)
@@ -533,13 +384,13 @@ func getBooksWithOffsetAndLimit(db *sql.DB, offset, limit int) ([]book.BookInfo,
 	return books, nil
 }
 
-func setUpPaginationFor(pageInt int, db *sql.DB, pageVariables *PageResultsVariables) error {
+func setUpPaginationFor(pageInt int, dao *dao.DAO, pageVariables *PageResultsVariables) error {
 	now := time.Now()
 
 	pageVariables.Year = now.Format("2006")
 	pageVariables.SiteKey = captcha.SiteKey
 
-	totalBooks, err := getTotalBooks(db)
+	totalBooks, err := (*dao).GetBookCount()
 	if err != nil {
 		log.Printf("Error getting total books: %v", err)
 		return err
@@ -583,7 +434,7 @@ func setUpPaginationFor(pageInt int, db *sql.DB, pageVariables *PageResultsVaria
 	return nil
 }
 
-func AllBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func AllBooksPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	page := r.URL.Query().Get("page")
 	if page == "" {
 		page = "1"
@@ -598,7 +449,7 @@ func AllBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	offset := (pageInt - 1) * numberOfResultsByPage
 
-	books, err := getBooksWithOffsetAndLimit(db, offset, numberOfResultsByPage)
+	books, err := (*dao).GetBooksWithPagination(offset, numberOfResultsByPage)
 	if err != nil {
 		log.Printf("Error getting books: %v", err)
 		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
@@ -608,7 +459,7 @@ func AllBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	pageVariables := PageResultsVariables{}
 	pageVariables.Results = books
 
-	err = setUpPaginationFor(pageInt, db, &pageVariables)
+	err = setUpPaginationFor(pageInt, dao, &pageVariables)
 	if err != nil {
 		log.Printf("Error setting up pagination: %v", err)
 		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
@@ -659,10 +510,10 @@ func AllBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 //	})
 //}
 
-func BooksList(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func BooksList(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	authorParam := r.URL.Query().Get("start_with")
 
-	booksByAuthor, err := getBooksBySearchTypeCoincidence(db, authorParam, ByAuthor)
+	booksByAuthor, err := (*dao).GetBooksBySearchTypeCoincidence(authorParam, book.ByAuthor)
 	if err != nil {
 		log.Printf("error: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
@@ -685,6 +536,12 @@ func BooksList(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		bookDetail.Title = book.Title
 		bookDetail.Author = book.Author
 		bookDetail.Description = book.Description
+
+		fmt.Printf("debug:abc %d\n", len(book.Base64Images))
+		for _, img := range book.Base64Images {
+			// fmt.Printf("debug:xx img=(%s)\n", img)
+			fmt.Printf("debug:xyz bID=%d, iID=%d, %t\n", img.BookID, img.ImageID, len(img.Image) > 0)
+		}
 		bookDetail.Base64Images = book.Base64Images
 
 		results = append(results, bookDetail)
@@ -713,22 +570,11 @@ func getTotalBooks(db *sql.DB) (int, error) {
 	return count, nil
 }
 
-func BooksCount(db *sql.DB, w http.ResponseWriter) {
-	queryStr := `SELECT count(*) FROM books`
-	rows, err := db.Query(queryStr)
+func BooksCount(dao *dao.DAO, w http.ResponseWriter) {
+	count, err := (*dao).GetBookCount()
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
-	}
-
-	var count int
-
-	for rows.Next() {
-		err := rows.Scan(&count)
-		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
-			return
-		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -737,7 +583,7 @@ func BooksCount(db *sql.DB, w http.ResponseWriter) {
 	})
 }
 
-func SearchBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func SearchBooksPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	bookQuery := r.URL.Query().Get("textSearch")
 	searchTypesStr := r.URL.Query().Get("searchType")
 	searchTypesParams := uniqueSearchTypes(strings.Split(searchTypesStr, ","))
@@ -752,8 +598,8 @@ func SearchBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	for _, searchTypeParam := range searchTypesParams {
 		searchType := parseBookSearchType(searchTypeParam)
 		switch searchType {
-		case ByTitle:
-			booksByTitle, err := getBooksBySearchTypeCoincidence(db, bookQuery, ByTitle)
+		case book.ByTitle:
+			booksByTitle, err := (*dao).GetBooksBySearchTypeCoincidence(bookQuery, book.ByTitle)
 			if err != nil {
 				log.Printf("error: %v", err)
 				redirectToErrorPageWithMessageAndStatusCode(w, "Error getting information from the database", http.StatusInternalServerError)
@@ -762,8 +608,8 @@ func SearchBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			}
 			results = append(results, booksByTitle...)
 
-		case ByAuthor:
-			booksByAuthor, err := getBooksBySearchTypeCoincidence(db, bookQuery, ByAuthor)
+		case book.ByAuthor:
+			booksByAuthor, err := (*dao).GetBooksBySearchTypeCoincidence(bookQuery, book.ByAuthor)
 			if err != nil {
 				log.Printf("error getting info from the database: %v", err)
 				redirectToErrorPageWithMessageAndStatusCode(w, "error getting info from the database", http.StatusInternalServerError)
@@ -771,7 +617,7 @@ func SearchBooksPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			}
 			results = append(results, booksByAuthor...)
 
-		case Unknown:
+		case book.Unknown:
 			log.Printf("Tipo de búsqueda en libros desconocido.")
 			redirectToErrorPageWithMessageAndStatusCode(w, "Wrong search", http.StatusInternalServerError)
 
@@ -835,7 +681,7 @@ func IngresarPage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusSeeOther)
 }
 
-func Auth0Callback(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
 	token, err := auth.Config.Exchange(r.Context(), code)
@@ -852,12 +698,7 @@ func Auth0Callback(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = db.Exec(`
-			INSERT INTO users(user_id, email, name, oauth_identifier) 
-			VALUES($1, $2, $3, $4)
-			ON CONFLICT(user_id) DO UPDATE
-			SET email = $2, name = $3`, userInfo.Sub, userInfo.Email, userInfo.Name, "Google")
-
+	err = (*dao).AddUser(userInfo.Sub, userInfo.Email, userInfo.Name, "Google")
 	if err != nil {
 		http.Error(w, "Error al guardar el usuario en la base de datos", http.StatusInternalServerError)
 		return
@@ -910,7 +751,7 @@ func setAuthenticationForPageResults(r *http.Request, pageResultsVariables *Page
 	}
 }
 
-func CheckLikeStatus(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func CheckLikeStatus(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	userID, err := getCurrentUserID(r)
 	if err != nil {
 		writeUnauthenticated(w)
@@ -921,24 +762,7 @@ func CheckLikeStatus(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	wordID := vars["word_id"]
 
-	queryStr := "SELECT EXISTS(SELECT 1 FROM book_likes WHERE book_id=$1 AND user_id=$2)"
-
-	rows, err := db.Query(queryStr, wordID, userID)
-	if err != nil {
-		writeErrorLikeStatus(w, err)
-		return
-	}
-	defer rows.Close()
-
-	var exists bool
-
-	if rows.Next() {
-		if err := rows.Scan(&exists); err != nil {
-			writeErrorLikeStatus(w, err)
-			return
-		}
-	}
-
+	exists, err := (*dao).LikedBy(wordID, userID)
 	if err != nil {
 		writeErrorLikeStatus(w, err)
 		return
@@ -953,7 +777,7 @@ func CheckLikeStatus(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func LikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func LikeBook(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	userID, err := getCurrentUserID(r)
 	if err != nil {
 		http.Error(w, "Error al obtener información de la sesión", http.StatusInternalServerError)
@@ -966,7 +790,7 @@ func LikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	bookID := r.PostFormValue("book_id")
 
-	_, err = db.Exec("INSERT INTO book_likes(book_id, user_id) VALUES($1, $2) ON CONFLICT(book_id, user_id) DO NOTHING", bookID, userID)
+	err = (*dao).LikeBook(bookID, userID)
 
 	if err != nil {
 		http.Error(w, "Error al dar like en la base de datos", http.StatusInternalServerError)
@@ -976,7 +800,7 @@ func LikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Liked successfully"))
 }
 
-func AddBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func AddBook(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(2 << 20)
 	if err != nil {
 		log.Printf("error adding book: %v", err)
@@ -984,11 +808,12 @@ func AddBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := r.FormValue("title")
-	author := r.FormValue("author")
-	description := r.FormValue("description")
-	read := r.FormValue("read") == "on"
-	goodreadsLink := r.FormValue("goodreadsLink")
+	book := book.BookInfo{}
+	book.Title = r.FormValue("title")
+	book.Author = r.FormValue("author")
+	book.Description = r.FormValue("description")
+	book.HasBeenRead = r.FormValue("read") == "on"
+	book.GoodreadsLink = r.FormValue("goodreadsLink")
 
 	var imageData []byte
 	file, _, err := r.FormFile("image")
@@ -1003,15 +828,9 @@ func AddBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	book.Image = imageData
 
-	stmt, err := db.Prepare("INSERT INTO books (title, author, image, description, read, goodreads_link) VALUES ($1, $2, $3, $4, $5, $6)")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(title, author, imageData, description, read, goodreadsLink)
+	err = (*dao).CreateBook(book)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -1020,7 +839,7 @@ func AddBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Libro agregado con éxito"))
 }
 
-func UnlikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func UnlikeBook(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	userID, err := getCurrentUserID(r)
 	if err != nil {
 		http.Error(w, "Error al obtener información de la sesión", http.StatusInternalServerError)
@@ -1039,7 +858,7 @@ func UnlikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("debug:x trying to unlike book_id=(%s), user_id=(%s)\n", bookID, userID)
 
-	_, err = db.Exec("DELETE FROM book_likes WHERE book_id=$1 AND user_id=$2", bookID, userID)
+	err = (*dao).UnlikeBook(bookID, userID)
 	if err != nil {
 		http.Error(w, "Error al quitar el like en la base de datos", http.StatusInternalServerError)
 		return
@@ -1048,7 +867,7 @@ func UnlikeBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Unliked successfully"))
 }
 
-func LikesCount(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func LikesCount(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	bookID := r.URL.Query().Get("book_id")
 	if bookID == "" {
 		http.Error(w, "book_id is required", http.StatusBadRequest)
@@ -1062,7 +881,7 @@ func LikesCount(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var count int
-	err = db.QueryRow("SELECT COUNT(*) FROM book_likes WHERE book_id = $1", id).Scan(&count)
+	count, err = (*dao).LikesCount(id)
 	if err != nil {
 		http.Error(w, "Error querying the database", http.StatusInternalServerError)
 		return
@@ -1076,7 +895,7 @@ func LikesCount(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func CreateDBFromFile(db *sql.DB, w http.ResponseWriter) {
+func CreateDBFromFile(dao *dao.DAO, w http.ResponseWriter) {
 	libraryDir := "library"
 	libraryDirPath := filepath.Join(libraryDir, "books_db.toml")
 
@@ -1091,46 +910,10 @@ func CreateDBFromFile(db *sql.DB, w http.ResponseWriter) {
 
 	startTime := time.Now()
 
-	for _, book := range library.Book {
-		log.Printf("Reading: (%s)", book)
-		bookInfo, err := getBookByID(db, book.ID)
-		if err == nil && bookInfo.ID == book.ID {
-			log.Printf("Book with ID: %d already exists, skipping", book.ID)
-			continue
-		}
-
-		var bookID int
-		stmt, err := db.Prepare("INSERT INTO books(id, title, author, description, read, added_on, goodreads_link) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id")
-		if err != nil {
-			writeErrorGeneralStatus(w, err)
-			return
-		}
-
-		err = stmt.QueryRow(book.ID, book.Title, book.Author, book.Description, book.HasBeenRead, book.AddedOn, book.GoodreadsLink).Scan(&bookID)
-		if err != nil {
-			writeErrorGeneralStatus(w, err)
-			return
-		}
-
-		for _, imageName := range book.ImageNames {
-			imgBytes, err := os.ReadFile(filepath.Join("images", imageName))
-			if err != nil {
-				writeErrorGeneralStatus(w, err)
-				return
-			}
-
-			imgStmt, err := db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
-			if err != nil {
-				writeErrorGeneralStatus(w, err)
-				return
-			}
-
-			_, err = imgStmt.Exec(bookID, imgBytes)
-			if err != nil {
-				writeErrorGeneralStatus(w, err)
-				return
-			}
-		}
+	err := (*dao).AddAll(library.Book)
+	if err != nil {
+		writeErrorGeneralStatus(w, err)
+		return
 	}
 
 	elapsedTime := time.Since(startTime)
@@ -1140,7 +923,7 @@ func CreateDBFromFile(db *sql.DB, w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "OK"})
 }
 
-func InfoBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func InfoBook(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	idQueryParam := r.URL.Query().Get("id")
 
 	id, err := strconv.Atoi(idQueryParam)
@@ -1149,7 +932,7 @@ func InfoBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookByID, err := getBookByID(db, id)
+	bookByID, err := (*dao).GetBookByID(id)
 	if err != nil {
 		log.Printf("error: getting information from the database")
 		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
@@ -1182,7 +965,7 @@ func InfoBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ModifyBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ModifyBook(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	// TODO: check auth here
 	err := r.ParseMultipartForm(2 << 20)
 	if err != nil {
@@ -1205,33 +988,14 @@ func ModifyBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, _, err := r.FormFile("image")
-	err = addImageToBook(db, id, r, file)
+	err = addImageToBook(dao, id, r)
 	if err != nil {
 		writeErrorGeneralStatus(w, err)
 
 		return
 	}
 
-	bookUpdate, err := db.Prepare(`
-		UPDATE books SET 
-			title = $1,
-			author = $2,
-			description = $3,
-			read = $4,
-			goodreads_link = $5
-		WHERE id = $6
-	`)
-	if err != nil {
-		writeErrorGeneralStatus(w, err)
-
-		return
-	}
-	defer func() {
-		_ = bookUpdate.Close()
-	}()
-
-	_, err = bookUpdate.Exec(title, author, description, read, goodreadsLink, id)
+	err = (*dao).UpdateBook(title, author, description, read, goodreadsLink, id)
 	if err != nil {
 		writeErrorGeneralStatus(w, err)
 
@@ -1241,7 +1005,7 @@ func ModifyBook(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Libro modificado con exito"))
 }
 
-func addImageToBook(db *sql.DB, id int, r *http.Request, file multipart.File) error {
+func addImageToBook(dao *dao.DAO, id int, r *http.Request) error {
 	var imageData []byte
 	file, _, err := r.FormFile("image")
 	if err == nil {
@@ -1258,12 +1022,7 @@ func addImageToBook(db *sql.DB, id int, r *http.Request, file multipart.File) er
 		return nil
 	}
 
-	imgStmt, err := db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
-	if err != nil {
-		return err
-	}
-
-	_, err = imgStmt.Exec(id, imageData)
+	err = (*dao).AddImageToBook(id, imageData)
 	if err != nil {
 		return err
 	}
@@ -1271,7 +1030,7 @@ func addImageToBook(db *sql.DB, id int, r *http.Request, file multipart.File) er
 	return nil
 }
 
-func ModifyBookPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func ModifyBookPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	idQueryParam := r.URL.Query().Get("book_id")
 
 	id, err := strconv.Atoi(idQueryParam)
@@ -1280,7 +1039,7 @@ func ModifyBookPage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookByID, err := getBookByID(db, id)
+	bookByID, err := (*dao).GetBookByID(id)
 	if err != nil {
 		redirectToErrorPageWithMessageAndStatusCode(w, "error getting information from the database", http.StatusInternalServerError)
 		return
@@ -1420,15 +1179,21 @@ func AddBookPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RemoveImage(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func RemoveImage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	// TODO: check auth
 
 	r.ParseForm()
-	imageID := r.PostFormValue("image_id")
+	imageIDParam := r.PostFormValue("image_id")
+
+	imageID, err := strconv.Atoi(imageIDParam)
+	if err != nil {
+		http.Error(w, "Error removing image", http.StatusInternalServerError)
+		return
+	}
 
 	log.Printf("debug:x about to remove=(%s)", imageID)
 
-	_, err := db.Exec("DELETE FROM book_images WHERE image_id=$1", imageID)
+	err = (*dao).RemoveImage(imageID)
 	if err != nil {
 		http.Error(w, "Error removing image", http.StatusInternalServerError)
 		return

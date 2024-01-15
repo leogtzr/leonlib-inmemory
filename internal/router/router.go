@@ -1,7 +1,7 @@
 package router
 
 import (
-	"database/sql"
+	"leonlib/internal/dao"
 	"leonlib/internal/handler"
 	"net/http"
 
@@ -19,7 +19,7 @@ type Routes []Router
 
 var routes Routes
 
-func initRoutes(db *sql.DB) {
+func initRoutes(dao *dao.DAO) {
 	routes = Routes{
 		Router{
 			"About Page",
@@ -34,7 +34,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/allbooks",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.AllBooksPage(db, w, r)
+				handler.AllBooksPage(dao, w, r)
 			},
 		},
 		Router{
@@ -50,7 +50,7 @@ func initRoutes(db *sql.DB) {
 			"POST",
 			"/addbook",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.AddBook(db, w, r)
+				handler.AddBook(dao, w, r)
 			},
 		},
 		Router{
@@ -58,7 +58,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/api/check_like/{word_id}",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.CheckLikeStatus(db, w, r)
+				handler.CheckLikeStatus(dao, w, r)
 			},
 		},
 		Router{
@@ -66,7 +66,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/admin/initdb",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.CreateDBFromFile(db, w)
+				handler.CreateDBFromFile(dao, w)
 			},
 		},
 		Router{
@@ -74,7 +74,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/api/likes_count",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.LikesCount(db, w, r)
+				handler.LikesCount(dao, w, r)
 			},
 		},
 		Router{
@@ -82,7 +82,7 @@ func initRoutes(db *sql.DB) {
 			"POST",
 			"/api/like",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.LikeBook(db, w, r)
+				handler.LikeBook(dao, w, r)
 			},
 		},
 		Router{
@@ -90,7 +90,7 @@ func initRoutes(db *sql.DB) {
 			"DELETE",
 			"/api/like",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.UnlikeBook(db, w, r)
+				handler.UnlikeBook(dao, w, r)
 			},
 		},
 		//Router{
@@ -112,7 +112,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/auth/callback",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.Auth0Callback(db, w, r)
+				handler.Auth0Callback(dao, w, r)
 			},
 		},
 		Router{
@@ -120,7 +120,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/books_by_author",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.BooksByAuthorPage(db, w, r)
+				handler.BooksByAuthorPage(dao, w, r)
 			},
 		},
 		Router{
@@ -148,7 +148,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/search_books",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.SearchBooksPage(db, w, r)
+				handler.SearchBooksPage(dao, w, r)
 			},
 		},
 		Router{
@@ -156,7 +156,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/book_info",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.InfoBook(db, w, r)
+				handler.InfoBook(dao, w, r)
 			},
 		},
 		Router{
@@ -164,7 +164,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/admin/modify",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.ModifyBookPage(db, w, r)
+				handler.ModifyBookPage(dao, w, r)
 			},
 		},
 		Router{
@@ -172,7 +172,7 @@ func initRoutes(db *sql.DB) {
 			"POST",
 			"/modify",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.ModifyBook(db, w, r)
+				handler.ModifyBook(dao, w, r)
 			},
 		},
 		Router{
@@ -194,7 +194,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/api/booksCount",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.BooksCount(db, w)
+				handler.BooksCount(dao, w)
 			},
 		},
 		Router{
@@ -202,7 +202,7 @@ func initRoutes(db *sql.DB) {
 			"GET",
 			"/api/books",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.BooksList(db, w, r)
+				handler.BooksList(dao, w, r)
 			},
 		},
 		Router{
@@ -210,14 +210,14 @@ func initRoutes(db *sql.DB) {
 			"POST",
 			"/removeimage",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.RemoveImage(db, w, r)
+				handler.RemoveImage(dao, w, r)
 			},
 		},
 	}
 }
 
-func NewRouter(db *sql.DB) *mux.Router {
-	initRoutes(db)
+func NewRouter(dao *dao.DAO) *mux.Router {
+	initRoutes(dao)
 	router := mux.NewRouter().StrictSlash(true)
 
 	//rateLimiter := middleware.NewRateLimiterMiddleware(ratelimit.RedisClient, 1, 5)
