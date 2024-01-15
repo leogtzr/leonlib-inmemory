@@ -1,6 +1,9 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // BookInfo ...
 type BookInfo struct {
@@ -40,6 +43,24 @@ type BookImageInfo struct {
 	ImageID int
 	BookID  int
 	Image   string
+}
+
+/*
+CREATE TABLE book_likes (
+
+	like_id SERIAL PRIMARY KEY,
+	book_id INTEGER REFERENCES books(id),
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	user_id TEXT REFERENCES users(user_id)
+
+);
+*/
+// BookLike ...
+type BookLike struct {
+	ID        int
+	BookID    int
+	CreatedAt time.Time
+	UserID    string
 }
 
 type Library struct {

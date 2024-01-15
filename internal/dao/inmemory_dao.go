@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -61,6 +62,13 @@ func createInMemoryDatabaseFromFile() (map[int]book.BookInfo, error) {
 	}
 
 	return db, nil
+}
+
+func createInMemoryLikesDatabase() *map[string][]string {
+	// book_likes[userID::string][]string
+	db := make(map[string][]string)
+
+	return &db
 }
 
 func searchByTitle(titleSearchText string, db *map[int]book.BookInfo) (*[]book.BookInfo, error) {
@@ -227,22 +235,67 @@ func (dao *memoryBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, e
 }
 
 func (dao *memoryBookDAO) LikedBy(bookID, userID string) (bool, error) {
+	/*
+		_, err := dao.db.Exec("INSERT INTO book_likes(book_id, user_id) VALUES($1, $2) ON CONFLICT(book_id, user_id) DO NOTHING", bookID, userID)
+
+			if err != nil {
+				return err
+			}
+
+			return nil
+	*/
 	return false, nil
 }
 
+func exists(IDs *[]string, target string) bool {
+	for _, id := range *IDs {
+		if target == id {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasBeenLiked(IDs *[]string, target string) bool {
+	for _, id := range *IDs {
+		if target == id {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (dao *memoryBookDAO) LikeBook(bookID, userID string) error {
-	// TODO: pending...
+	bookLikes, exists := (*dao.bookLikes)[userID]
+	if !exists {
+		(*dao.bookLikes)[userID] = make([]string, 0)
+		(*dao.bookLikes)[userID] = append((*dao.bookLikes)[userID], bookID)
+
+		return nil
+	}
+
+	if hasLike := hasBeenLiked(&bookLikes, bookID); !hasLike {
+		(*dao.bookLikes)[userID] = append((*dao.bookLikes)[userID], bookID)
+	}
 
 	return nil
 }
 
 func (dao *memoryBookDAO) LikesCount(bookID int) (int, error) {
-	// TODO: pending...
-	return -1, nil
+	count := 0
+	id := strconv.Itoa(bookID)
+	for _, bookLikesPerUser := range *dao.bookLikes {
+		if !exists(&bookLikesPerUser, id) {
+			count++
+		}
+	}
+
+	return count, nil
 }
 
 func (dao *memoryBookDAO) Ping() error {
-	// TODO: pending....
 	return nil
 }
 

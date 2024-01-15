@@ -38,8 +38,9 @@ type postgresBookDAO struct {
 }
 
 type memoryBookDAO struct {
-	books  *map[int]book.BookInfo
-	images *map[int][]book.BookImageInfo
+	books     *map[int]book.BookInfo
+	images    *map[int][]book.BookImageInfo
+	bookLikes *map[string][]string
 }
 
 func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, error) {
@@ -83,7 +84,7 @@ func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, err
 			return nil, err
 		}
 
-		bookDAO = &memoryBookDAO{books: &db, images: &images}
+		bookDAO = &memoryBookDAO{books: &db, images: &images, bookLikes: createInMemoryLikesDatabase()}
 	}
 
 	return bookDAO, nil
@@ -216,4 +217,29 @@ func getImagesByBookID(bookID int, db *sql.DB) ([]book.BookImageInfo, error) {
 	}
 
 	return images, nil
+}
+
+func updateBook(title string, author string, description string, read bool, goodreadsLink string, id int, db *sql.DB) error {
+	bookUpdate, err := db.Prepare(`
+		UPDATE books SET 
+			title = $1,
+			author = $2,
+			description = $3,
+			read = $4,
+			goodreads_link = $5
+		WHERE id = $6
+	`)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = bookUpdate.Close()
+	}()
+
+	_, err = bookUpdate.Exec(title, author, description, read, goodreadsLink, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

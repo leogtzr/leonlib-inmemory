@@ -259,26 +259,5 @@ func (dao *postgresBookDAO) UnlikeBook(bookID, userID string) error {
 }
 
 func (dao *postgresBookDAO) UpdateBook(title string, author string, description string, read bool, goodreadsLink string, id int) error {
-	bookUpdate, err := dao.db.Prepare(`
-		UPDATE books SET 
-			title = $1,
-			author = $2,
-			description = $3,
-			read = $4,
-			goodreads_link = $5
-		WHERE id = $6
-	`)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = bookUpdate.Close()
-	}()
-
-	_, err = bookUpdate.Exec(title, author, description, read, goodreadsLink, id)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return updateBook(title, author, description, read, goodreadsLink, id, dao.db)
 }
