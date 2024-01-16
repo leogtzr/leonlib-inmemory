@@ -9,6 +9,7 @@ export DB_MODE="inmemory"
 # export DB_MODE="postgres"
 export PORT=8180
 export PGPORT=5432
+export RUN_MODE="prod"
 
 docker-compose up --build
 

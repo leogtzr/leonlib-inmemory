@@ -122,6 +122,21 @@ func parseBookSearchType(input string) book.BookSearchType {
 	}
 }
 
+func getDevUserInfo() (*UserInfo, error) {
+	if !isDevMode() {
+		return nil, fmt.Errorf("no dev mode")
+	}
+
+	var userInfo UserInfo
+	userInfo.Nickname = "Leo"
+	userInfo.Name = "Leo"
+	userInfo.Email = os.Getenv("LEONLIB_MAINAPP_USER")
+	userInfo.Sub = "leonardo"
+	userInfo.Verified = true
+
+	return &userInfo, nil
+}
+
 func getUserInfoFromAuth0(accessToken string) (*UserInfo, error) {
 	userInfoEndpoint := fmt.Sprintf("https://%s/userinfo", os.Getenv("AUTH0_DOMAIN"))
 
@@ -361,7 +376,6 @@ func BooksByAuthorPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 func getBooksWithPagination(db *sql.DB, offset, limit int) ([]book.BookInfo, error) {
 	query := `SELECT id, title, author, description, read, added_on FROM books ORDER BY title LIMIT $1 OFFSET $2;`
 
-	// fmt.Printf("debug:x (%d), (%d)\n", offset, limit)
 	fmt.Printf("query=(%s)\n", query)
 
 	rows, err := db.Query(query, limit, offset)
@@ -670,12 +684,77 @@ func IngresarPage(w http.ResponseWriter, r *http.Request) {
 	session.Values["oauth_state"] = oauthState
 	session.Save(r, w)
 
+	if isDevMode() {
+		http.Redirect(w, r, "/auth/callback", http.StatusSeeOther)
+
+		return
+	}
+
 	//url := auth.GoogleOauthConfig.AuthCodeURL(oauthState)
 	url := auth.Config.AuthCodeURL(oauthState)
 	http.Redirect(w, r, url, http.StatusSeeOther)
 }
 
+func setDevCredentialsAndRedirect(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
+	userInfo, err := getDevUserInfo()
+	if err != nil {
+		log.Printf("error: cannot get user info from Auth0: %v", err)
+		http.Error(w, "cannot get user info from Auth0", http.StatusInternalServerError)
+
+		return
+	}
+
+	err = (*dao).AddUser(userInfo.Sub, userInfo.Email, userInfo.Name, "Google")
+	if err != nil {
+		http.Error(w, "Error al guardar el usuario en la base de datos", http.StatusInternalServerError)
+		return
+	}
+
+	session, _ := auth.SessionStore.Get(r, "user-session")
+	session.Values["user_id"] = userInfo.Sub
+	session.Save(r, w)
+
+	now := time.Now()
+
+	pageVariables := PageVariables{
+		Year:    now.Format("2006"),
+		SiteKey: captcha.SiteKey,
+	}
+
+	_, err = getCurrentUserID(r)
+	if err != nil {
+		pageVariables.LoggedIn = false
+	} else {
+		pageVariables.LoggedIn = true
+	}
+
+	templateDir := os.Getenv("TEMPLATE_DIR")
+	if templateDir == "" {
+		templateDir = "internal/template"
+	}
+	templatePath := filepath.Join(templateDir, "index.html")
+
+	t, err := template.ParseFiles(templatePath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error al analizar la plantilla: %v", err)
+		return
+	}
+
+	err = t.Execute(w, pageVariables)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error al ejecutar la plantilla: %v", err)
+	}
+}
+
 func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
+	if isDevMode() {
+		setDevCredentialsAndRedirect(dao, w, r)
+
+		return
+	}
+
 	code := r.URL.Query().Get("code")
 
 	token, err := auth.Config.Exchange(r.Context(), code)
@@ -718,7 +797,7 @@ func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 
 	templateDir := os.Getenv("TEMPLATE_DIR")
 	if templateDir == "" {
-		templateDir = "internal/template" // valor predeterminado para desarrollo local
+		templateDir = "internal/template"
 	}
 	templatePath := filepath.Join(templateDir, "index.html")
 
@@ -1175,7 +1254,6 @@ func AddBookPage(w http.ResponseWriter, r *http.Request) {
 
 func RemoveImage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	// TODO: check auth
-
 	r.ParseForm()
 	imageIDParam := r.PostFormValue("image_id")
 
@@ -1185,8 +1263,6 @@ func RemoveImage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("debug:x about to remove=(%s)", imageID)
-
 	err = (*dao).RemoveImage(imageID)
 	if err != nil {
 		http.Error(w, "Error removing image", http.StatusInternalServerError)
@@ -1194,4 +1270,10 @@ func RemoveImage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte("Image removed OK..."))
+}
+
+func isDevMode() bool {
+	runMode := os.Getenv("RUN_MODE")
+
+	return runMode == "dev"
 }

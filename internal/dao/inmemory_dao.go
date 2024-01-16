@@ -118,8 +118,6 @@ func (dao *memoryBookDAO) AddImageToBook(bookID int, imageData []byte) error {
 }
 
 func (dao *memoryBookDAO) AddUser(userID, email, name, oauthIdentifier string) error {
-	// TODO: pending...
-
 	return nil
 }
 
@@ -235,16 +233,9 @@ func (dao *memoryBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, e
 }
 
 func (dao *memoryBookDAO) LikedBy(bookID, userID string) (bool, error) {
-	/*
-		_, err := dao.db.Exec("INSERT INTO book_likes(book_id, user_id) VALUES($1, $2) ON CONFLICT(book_id, user_id) DO NOTHING", bookID, userID)
+	likesPerUser := (*dao.bookLikes)[userID]
 
-			if err != nil {
-				return err
-			}
-
-			return nil
-	*/
-	return false, nil
+	return exists(&likesPerUser, bookID), nil
 }
 
 func exists(IDs *[]string, target string) bool {
@@ -287,7 +278,7 @@ func (dao *memoryBookDAO) LikesCount(bookID int) (int, error) {
 	count := 0
 	id := strconv.Itoa(bookID)
 	for _, bookLikesPerUser := range *dao.bookLikes {
-		if !exists(&bookLikesPerUser, id) {
+		if exists(&bookLikesPerUser, id) {
 			count++
 		}
 	}
@@ -304,8 +295,40 @@ func (dao *memoryBookDAO) RemoveImage(imageID int) error {
 	return nil
 }
 
+func removeIndex(elements []string, index int) []string {
+	ret := make([]string, 0)
+	ret = append(ret, elements[:index]...)
+
+	return append(ret, elements[index+1:]...)
+}
+
+func find(elements []string, target string) int {
+	foundIndex := -1
+
+	for i, e := range elements {
+		if target == e {
+			foundIndex = i
+
+			break
+		}
+	}
+
+	return foundIndex
+}
+
 func (dao *memoryBookDAO) UnlikeBook(bookID, userID string) error {
-	// TODO: pending...
+	// Remove the like made by the user
+	bookLikes, exists := (*dao.bookLikes)[userID]
+	if !exists {
+		return fmt.Errorf("error: user (%s) does not have liked books", userID)
+	}
+
+	bookIDxToRemove := find(bookLikes, bookID)
+	if bookIDxToRemove == -1 {
+		return fmt.Errorf("error: user (%s) does not have liked books", userID)
+	}
+
+	(*dao.bookLikes)[userID] = removeIndex(bookLikes, bookIDxToRemove)
 
 	return nil
 }

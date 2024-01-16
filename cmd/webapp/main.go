@@ -26,15 +26,18 @@ var (
 	ctx         = context.Background()
 	mainAppUser = os.Getenv("LEONLIB_MAINAPP_USER")
 	DB          *sql.DB
+	runMode     = os.Getenv("RUN_MODE")
 )
 
 func init() {
 	if dbMode == "" {
 		dbMode = "memory"
-		// log.Fatal("error: DB_MODE not defined")
 	}
 	if mainAppUser == "" {
 		log.Fatal("error: LEONLIB_MAINAPP_USER not defined")
+	}
+	if runMode == "" {
+		runMode = "dev"
 	}
 	captcha.SiteKey = os.Getenv("LEONLIB_CAPTCHA_SITE_KEY")
 	captcha.SecretKey = os.Getenv("LEONLIB_CAPTCHA_SECRET_KEY")
