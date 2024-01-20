@@ -293,7 +293,7 @@ func (dao *memoryBookDAO) Ping() error {
 
 func (dao *memoryBookDAO) RemoveImage(imageID int) error {
 	delete(*dao.images, imageID)
-	
+
 	return nil
 }
 
@@ -336,6 +336,14 @@ func (dao *memoryBookDAO) UnlikeBook(bookID, userID string) error {
 }
 
 func (dao *memoryBookDAO) UpdateBook(title string, author string, description string, read bool, goodreadsLink string, id int) error {
-	// TODO: pending
+	book := (*dao.books)[id]
+	book.Title = title
+	book.Author = author
+	book.Description = description
+	book.HasBeenRead = read
+	book.GoodreadsLink = goodreadsLink
+
+	(*dao.books)[id] = book
+	
 	return nil
 }
