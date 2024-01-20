@@ -14,6 +14,7 @@ import (
 )
 
 func createInMemoryImagesDatabase(booksDB *map[int]book.BookInfo) (map[int][]book.BookImageInfo, error) {
+	//         map[imgID::int][]List of Books
 	db := make(map[int][]book.BookImageInfo)
 
 	imageID := 0
@@ -291,7 +292,8 @@ func (dao *memoryBookDAO) Ping() error {
 }
 
 func (dao *memoryBookDAO) RemoveImage(imageID int) error {
-	// TODO: pending...
+	delete(*dao.images, imageID)
+	
 	return nil
 }
 
