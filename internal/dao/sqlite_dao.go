@@ -162,7 +162,6 @@ func (dao *sqliteBookDAO) Close() error {
 }
 
 func (dao *sqliteBookDAO) CreateBook(book book.BookInfo) error {
-	// TODO: this is broken
 	stmt, err := dao.db.Prepare("INSERT INTO books (title, author, description, read, goodreads_link) VALUES ($1, $2, $3, $4, $5, $6)")
 	if err != nil {
 		return err
