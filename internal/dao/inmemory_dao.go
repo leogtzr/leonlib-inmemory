@@ -123,12 +123,16 @@ func (dao *memoryBookDAO) AddUser(userID, email, name, oauthIdentifier string) e
 }
 
 func (dao *memoryBookDAO) Close() error {
-	fmt.Printf("debug:x pending impl 4")
+	clear(*dao.bookLikes)
+	clear(*dao.books)
+	clear(*dao.images)
+
 	return nil
 }
 
 func (dao *memoryBookDAO) CreateBook(book book.BookInfo) error {
-	fmt.Printf("debug:x pending impl 2")
+	// TODO: pending...
+
 	return nil
 }
 
@@ -344,6 +348,6 @@ func (dao *memoryBookDAO) UpdateBook(title string, author string, description st
 	book.GoodreadsLink = goodreadsLink
 
 	(*dao.books)[id] = book
-	
+
 	return nil
 }

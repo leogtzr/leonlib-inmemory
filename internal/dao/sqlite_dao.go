@@ -162,13 +162,29 @@ func (dao *sqliteBookDAO) Close() error {
 }
 
 func (dao *sqliteBookDAO) CreateBook(book book.BookInfo) error {
-	stmt, err := dao.db.Prepare("INSERT INTO books (title, author, image, description, read, goodreads_link) VALUES ($1, $2, $3, $4, $5, $6)")
+	// TODO: this is broken
+	stmt, err := dao.db.Prepare("INSERT INTO books (title, author, description, read, goodreads_link) VALUES ($1, $2, $3, $4, $5, $6)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(book.Title, book.Author, book.Image, book.Description, book.HasBeenRead, book.GoodreadsLink)
+	insertedBookIDResult, err := stmt.Exec(book.Title, book.Author, book.Description, book.HasBeenRead, book.GoodreadsLink)
+	if err != nil {
+		return err
+	}
+
+	insertedBookID, err := insertedBookIDResult.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	imgStmt, err := dao.db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
+	if err != nil {
+		return err
+	}
+
+	_, err = imgStmt.Exec(insertedBookID, book.Image)
 	if err != nil {
 		return err
 	}
