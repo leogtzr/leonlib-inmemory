@@ -63,7 +63,7 @@ func (dao *postgresBookDAO) Close() error {
 }
 
 func (dao *postgresBookDAO) CreateBook(book book.BookInfo) error {
-	stmt, err := dao.db.Prepare("INSERT INTO books (title, author, description, read, goodreads_link) VALUES ($1, $2, $3, $4, $5, $6)")
+	stmt, err := dao.db.Prepare("INSERT INTO books (title, author, description, read, goodreads_link) VALUES ($1, $2, $3, $4, $5)")
 	if err != nil {
 		return err
 	}
