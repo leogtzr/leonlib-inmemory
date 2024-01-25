@@ -5708,3 +5708,110 @@ hasBeenRead = false
 imageNames = [ "trilogia.jpg" ]
 addedOn = "2023-12-30"
 
+[[book]]
+id = 650
+title = "Los 5 lenguajes del amor, El secreto del amor que perdura"
+author = "Gary Chapman"
+description = ""
+hasBeenRead = true
+imageNames = [ "lenguajes5.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 651
+title = "Los secretos de Sascha Fitness"
+author = "Sascha Barboza"
+description = ""
+hasBeenRead = false
+imageNames = [ "sascha1.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 652
+title = "Tú puedes sanar tu vida"
+author = "Louise L. Hay"
+description = ""
+hasBeenRead = false
+imageNames = [ "tupuedessanar.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 653
+title = "El hombre en busca de sentido"
+author = "Viktor Frankl"
+description = ""
+hasBeenRead = false
+imageNames = [ "buscadesentido.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 654
+title = "Más gente tóxica"
+author = "Bernando Stamateas"
+description = ""
+hasBeenRead = false
+imageNames = [ "gentetoxica.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 655
+title = "1800 calorías para ser feliz"
+author = "Jean-Michel Cohen"
+description = ""
+hasBeenRead = false
+imageNames = [ "1800calorias.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 656
+title = "El regreso del Joven Príncipe"
+author = "A. G. Roemmers"
+description = ""
+hasBeenRead = false
+imageNames = [ "regresoprincipe.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 657
+title = "El valle de los leones"
+author = "Ken Follet"
+description = ""
+hasBeenRead = false
+imageNames = [ "valleleones.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 658
+title = "La vida juega conmigo"
+author = "David Grossman"
+description = ""
+hasBeenRead = false
+imageNames = [ "vidajuega.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 659
+title = "El arte de amar"
+author = "Erich Fromm"
+description = ""
+hasBeenRead = false
+imageNames = [ "arteamar.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 660
+title = "El caballero de la armadura oxidada"
+author = "Robert Fisher"
+description = ""
+hasBeenRead = false
+imageNames = [ "caballero.jpg" ]
+addedOn = "2024-01-25"
+
+[[book]]
+id = 661
+title = "Antes de renunciar a tu empleo"
+author = "Robert T. Kiyosaki"
+description = ""
+hasBeenRead = false
+imageNames = [ "antesrenunciar.jpg" ]
+addedOn = "2024-01-25"
