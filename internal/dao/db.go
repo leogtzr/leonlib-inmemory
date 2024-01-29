@@ -46,7 +46,7 @@ type memoryBookDAO struct {
 func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, error) {
 	var bookDAO DAO
 	switch dbMode {
-	case "inmemory":
+	case "sqlite":
 		DB, err := sql.Open("sqlite3", "/var/lib/appdata/leonlib.db")
 		if err != nil {
 			return nil, err
