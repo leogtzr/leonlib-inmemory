@@ -5695,7 +5695,7 @@ id = 649
 title = "Trilogía"
 author = "Jon Fosse"
 description = ""
-hasBeenRead = false
+hasBeenRead = true
 imageNames = [ "trilogia.jpg" ]
 addedOn = "2023-12-30"
 
