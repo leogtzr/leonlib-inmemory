@@ -31,7 +31,7 @@ var (
 
 func init() {
 	if dbMode == "" {
-		dbMode = "memory"
+		dbMode = "sqlite"
 	}
 	if mainAppUser == "" {
 		log.Fatal("error: LEONLIB_MAINAPP_USER not defined")
@@ -63,6 +63,8 @@ func init() {
 }
 
 func main() {
+
+	log.Printf("DB mode: %s", dbMode)
 	dao, err := dao.NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName)
 	if err != nil {
 		log.Fatal(err)
