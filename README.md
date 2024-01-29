@@ -16,6 +16,7 @@ I confess that I have bought the same book multiple times due to not knowing tha
 - Postgres
 - SQLite
 - Docker
+- Shell (Bash)
 
 
 ## How to run it
@@ -24,3 +25,5 @@ To run the app using Postgres, run the script `run_app_with_postgres.sh`, it con
 Dockerfile file.
 
 To run the app using the SQLite application, use the `run_app_with_sqlite.sh` script. 
+
+You can also run the application using an `in-memory` database, for that, use the `run_app_in_memory.sh` script.
