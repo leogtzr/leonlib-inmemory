@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -23,9 +21,7 @@ var (
 	dbPassword  = os.Getenv("POSTGRES_PASSWORD")
 	dbName      = os.Getenv("PGDATABASE")
 	dbPort      = os.Getenv("PGPORT")
-	ctx         = context.Background()
 	mainAppUser = os.Getenv("LEONLIB_MAINAPP_USER")
-	DB          *sql.DB
 	runMode     = os.Getenv("RUN_MODE")
 )
 
