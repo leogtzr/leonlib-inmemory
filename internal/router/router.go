@@ -56,7 +56,7 @@ func initRoutes(dao *dao.DAO) {
 		Router{
 			"CheckLikeStatus",
 			"GET",
-			"/api/check_like/{word_id}",
+			"/api/check_like/{book_id}",
 			func(w http.ResponseWriter, r *http.Request) {
 				handler.CheckLikeStatus(dao, w, r)
 			},

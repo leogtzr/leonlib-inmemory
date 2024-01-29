@@ -833,9 +833,9 @@ func CheckLikeStatus(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	wordID := vars["word_id"]
+	bookID := vars["book_id"]
 
-	exists, err := (*dao).LikedBy(wordID, userID)
+	exists, err := (*dao).LikedBy(bookID, userID)
 	if err != nil {
 		writeErrorLikeStatus(w, err)
 		return
