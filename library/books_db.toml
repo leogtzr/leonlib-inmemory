@@ -74,7 +74,7 @@ id = 9
 title = "Nuestra parte de noche"
 author = "Mariana Enríquez"
 description = "Premio Herralde de Novela, Editorial Anagrama"
-hasBeenRead = false
+hasBeenRead = true
 imageNames = [ "12.jpg" ]
 addedOn = "2023-11-11"
 
@@ -736,15 +736,6 @@ imageNames = [ "90.jpg" ]
 addedOn = "2023-11-11"
 
 [[book]]
-id = 84
-title = "Contraluz"
-author = "Thomas Pynchon"
-description = "Editorial Tusquets"
-hasBeenRead = false
-imageNames = [ "90.jpg" ]
-addedOn = "2023-11-11"
-
-[[book]]
 id = 85
 title = "El hobbit"
 author = "J. R. R. Tolkien"
@@ -785,7 +776,7 @@ id = 89
 title = "Tolkien, el origen de El señor de los anillos"
 author = "Lin Carter"
 description = "Editorial Ediciones B Grupo Zeta"
-hasBeenRead = false
+hasBeenRead = true
 imageNames = [ "95.jpg" ]
 addedOn = "2023-11-11"
 
@@ -919,7 +910,7 @@ id = 104
 title = "Guía completa de la tierra media (A-G)"
 author = "Robert Foster"
 description = "Editorial Minotauro, Planeta DeAgostini"
-hasBeenRead = true
+hasBeenRead = false
 imageNames = [ "111.jpg" ]
 addedOn = "2023-11-11"
 
@@ -928,7 +919,7 @@ id = 105
 title = "Guía completa de la tierra media (H-Z)"
 author = "Robert Foster"
 description = "Editorial Minotauro, Planeta DeAgostini"
-hasBeenRead = true
+hasBeenRead = false
 imageNames = [ "112.jpg" ]
 addedOn = "2023-11-11"
 
