@@ -134,7 +134,7 @@ $(document).ready(function() {
                         });
                         clickedElement.removeClass('active');
                         clickedElement.attr('data-original-title', 'Dar like');
-                        console.log('Updating word like count after unliking word');
+                        console.log('Updating book like count after unliking book');
                         await updateBadgeCount(bookID);
                     } catch (error) {
                         console.log('Got an error: ');
@@ -155,7 +155,7 @@ $(document).ready(function() {
 
                         clickedElement.addClass('active');
                         clickedElement.attr('data-original-title', 'Quitar like');
-                        console.log('Updating word like count after liking word.');
+                        console.log('Updating book like count after liking book.');
                         await updateBadgeCount(bookID);
 
                     } catch (error) {

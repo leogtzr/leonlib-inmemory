@@ -176,7 +176,7 @@ func addUser(db *sql.DB, userID, email, name, oauthIdentifier string) error {
 			INSERT INTO users(user_id, email, name, oauth_identifier) 
 			VALUES($1, $2, $3, $4)
 			ON CONFLICT(user_id) DO UPDATE
-			SET email = $2, name = $3`, userID, email, name, "Google")
+			SET email = $2, name = $3`, userID, email, name, oauthIdentifier)
 
 	if err != nil {
 		return err

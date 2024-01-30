@@ -54,7 +54,7 @@ func initRoutes(dao *dao.DAO) {
 			},
 		},
 		Router{
-			"CheckLikeStatus",
+			"Check Like Status",
 			"GET",
 			"/api/check_like/{book_id}",
 			func(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +62,7 @@ func initRoutes(dao *dao.DAO) {
 			},
 		},
 		Router{
-			"",
+			"Init Database",
 			"GET",
 			"/admin/initdb",
 			func(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func initRoutes(dao *dao.DAO) {
 			},
 		},
 		Router{
-			"LikesCount",
+			"Likes Count",
 			"GET",
 			"/api/likes_count",
 			func(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +86,7 @@ func initRoutes(dao *dao.DAO) {
 			},
 		},
 		Router{
-			"UnlikeWord",
+			"Unlike Book",
 			"DELETE",
 			"/api/like",
 			func(w http.ResponseWriter, r *http.Request) {

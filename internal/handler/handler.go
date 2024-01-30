@@ -52,6 +52,7 @@ type PageResultsVariables struct {
 	SiteKey      string
 	Results      []book.BookInfo
 	LoggedIn     bool
+	IsAdmin      bool
 	Funcs        template.FuncMap
 	Page         int
 	TotalPages   int
@@ -770,6 +771,9 @@ func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "cannot get user info from Auth0", http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Printf("debug:x User info: \n")
+	fmt.Printf("debug:x user=(%s)\n", userInfo)
 
 	err = (*dao).AddUser(userInfo.Sub, userInfo.Email, userInfo.Name, "Google")
 	if err != nil {
