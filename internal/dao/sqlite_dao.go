@@ -169,12 +169,7 @@ func (dao *sqliteBookDAO) AddImageToBook(bookID int, imageData []byte) error {
 }
 
 func (dao *sqliteBookDAO) AddUser(userID, email, name, oauthIdentifier string) error {
-	err := addUser(dao.db, userID, email, name, oauthIdentifier)
-	if err != nil {
-		return err
-	}
-
-	return dumpUsersTable(dao.db)
+	return addUser(dao.db, userID, email, name, oauthIdentifier)
 }
 
 func (dao *sqliteBookDAO) Close() error {

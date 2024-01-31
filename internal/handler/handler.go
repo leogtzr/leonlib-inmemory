@@ -764,11 +764,6 @@ func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("debug:x User info: \n")
-	fmt.Printf("debug:x user=(%s)\n", userInfo)
-
-	//
-
 	err = (*dao).AddUser(userInfo.Sub, userInfo.Email, userInfo.Name, "Google")
 	if err != nil {
 		http.Error(w, "Error al guardar el usuario en la base de datos", http.StatusInternalServerError)

@@ -6,7 +6,6 @@ import (
 	"github.com/BurntSushi/toml"
 	book "leonlib/internal/types"
 	user "leonlib/internal/types"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -22,7 +21,6 @@ func createInMemoryImagesDatabase(booksDB *map[int]book.BookInfo) (map[int][]boo
 	for _, b := range *booksDB {
 		var images []book.BookImageInfo
 		for _, imageName := range b.ImageNames {
-			log.Printf("debug:x Reading image name=(%s) for book=(%s)\n", imageName, b)
 			imgBytes, err := os.ReadFile(filepath.Join("images", imageName))
 			if err != nil {
 				return map[int][]book.BookImageInfo{}, err

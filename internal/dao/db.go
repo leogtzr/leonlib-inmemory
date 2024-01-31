@@ -187,28 +187,6 @@ func addUser(db *sql.DB, userID, email, name, oauthIdentifier string) error {
 	return nil
 }
 
-func dumpUsersTable(db *sql.DB) error {
-	usersRows, err := db.Query(`SELECT * FROM users`)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		_ = usersRows.Close()
-	}()
-
-	for usersRows.Next() {
-		var userID, email, name, oauthIdentifier string
-		if err = usersRows.Scan(&userID, &email, &name, &oauthIdentifier); err != nil {
-			return err
-		}
-
-		fmt.Printf("debug:x (dump u) userID=(%s), email=(%s), name=(%s), oauthIdentifier=(%s)\n", userID, email, name, oauthIdentifier)
-	}
-
-	return nil
-}
-
 func getImagesByBookID(bookID int, db *sql.DB) ([]book.BookImageInfo, error) {
 	bookImagesRows, err := db.Query(`SELECT i.image_id, i.book_id, i.image FROM book_images i WHERE i.book_id=$1`, bookID)
 	if err != nil {
