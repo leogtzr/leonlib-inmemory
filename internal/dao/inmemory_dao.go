@@ -237,7 +237,6 @@ func (dao *memoryBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, e
 }
 
 func (dao *memoryBookDAO) GetUserInfoByID(userID string) (user.UserInfo, error) {
-	// TODO: pending impl
 	return user.UserInfo{}, nil
 }
 
