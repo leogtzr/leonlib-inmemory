@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"github.com/BurntSushi/toml"
 	book "leonlib/internal/types"
+	user "leonlib/internal/types"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 )
 
-func addBooksToDatabase(db *sql.DB) error {
+func addBooksToDatabase(db *sql.DB, dao *DAO) error {
 	libraryDir := "library"
 	libraryDirPath := filepath.Join(libraryDir, "books_db.toml")
 
@@ -24,6 +25,11 @@ func addBooksToDatabase(db *sql.DB) error {
 
 	for _, book := range library.Book {
 		log.Printf("Reading: (%s)", book)
+		bookInfo, err := (*dao).GetBookByID(book.ID)
+		if err == nil && bookInfo.ID == book.ID {
+			log.Printf("Book with ID: %d already exists, skipping", book.ID)
+			continue
+		}
 
 		var bookID int
 		stmt, err := db.Prepare("INSERT INTO books(id, title, author, description, read, added_on, goodreads_link) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id")
@@ -36,27 +42,36 @@ func addBooksToDatabase(db *sql.DB) error {
 			return err
 		}
 
-		for _, imageName := range book.ImageNames {
-			imgBytes, err := os.ReadFile(filepath.Join("images", imageName))
-			if err != nil {
-				return err
-			}
-
-			imgStmt, err := db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
-			if err != nil {
-				return err
-			}
-
-			_, err = imgStmt.Exec(bookID, imgBytes)
-			if err != nil {
-				return err
-			}
+		err = addImagesToBook(book.ID, &book.ImageNames, db)
+		if err != nil {
+			return err
 		}
 	}
 
 	elapsedTime := time.Since(startTime)
 
 	log.Printf("Books loaded in: %.2f seconds\n", elapsedTime.Seconds())
+
+	return nil
+}
+
+func addImagesToBook(id int, imageNames *[]string, db *sql.DB) error {
+	for _, imageName := range *imageNames {
+		imgBytes, err := os.ReadFile(filepath.Join("images", imageName))
+		if err != nil {
+			return err
+		}
+
+		imgStmt, err := db.Prepare("INSERT INTO book_images(book_id, image) VALUES($1, $2)")
+		if err != nil {
+			return err
+		}
+
+		_, err = imgStmt.Exec(id, imgBytes)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -154,7 +169,12 @@ func (dao *sqliteBookDAO) AddImageToBook(bookID int, imageData []byte) error {
 }
 
 func (dao *sqliteBookDAO) AddUser(userID, email, name, oauthIdentifier string) error {
-	return addUser(dao.db, userID, email, name, oauthIdentifier)
+	err := addUser(dao.db, userID, email, name, oauthIdentifier)
+	if err != nil {
+		return err
+	}
+
+	return dumpUsersTable(dao.db)
 }
 
 func (dao *sqliteBookDAO) Close() error {
@@ -301,6 +321,44 @@ func (dao *sqliteBookDAO) GetBooksBySearchTypeCoincidence(titleSearchText string
 
 func (dao *sqliteBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, error) {
 	return getImagesByBookID(bookID, dao.db)
+}
+
+/*
+CREATE TABLE IF NOT EXISTS users (
+
+		user_id TEXT PRIMARY KEY,
+		email TEXT NOT NULL UNIQUE,
+		name TEXT,
+		oauth_identifier TEXT NOT NULL
+	)
+*/
+func (dao *sqliteBookDAO) GetUserInfoByID(id string) (user.UserInfo, error) {
+	var err error
+	var queryStr = `SELECT u.user_id, u.email, u.name FROM users u WHERE u.user_id=$1`
+
+	userRow, err := dao.db.Query(queryStr, id)
+	if err != nil {
+		return user.UserInfo{}, err
+	}
+
+	defer func() {
+		_ = userRow.Close()
+	}()
+
+	var userInfo user.UserInfo
+	var userID string
+	var email string
+	var name string
+	if userRow.Next() {
+		if err := userRow.Scan(&userID, &email, &name); err != nil {
+			return user.UserInfo{}, err
+		}
+
+		userInfo.Sub = userID
+		userInfo.Email = email
+		userInfo.Name = name
+	}
+	return userInfo, nil
 }
 
 func (dao *sqliteBookDAO) LikedBy(bookID, userID string) (bool, error) {

@@ -56,6 +56,7 @@ func init() {
 	}
 
 	auth.SessionStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
+	auth.MainUser = os.Getenv("LEONLIB_MAINAPP_USER")
 }
 
 func main() {

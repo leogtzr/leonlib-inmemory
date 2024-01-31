@@ -3,6 +3,7 @@ package dao
 import (
 	"database/sql"
 	book "leonlib/internal/types"
+	user "leonlib/internal/types"
 	"log"
 	"os"
 	"path/filepath"
@@ -202,6 +203,11 @@ func (dao *postgresBookDAO) GetBooksBySearchTypeCoincidence(titleSearchText stri
 
 func (dao *postgresBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, error) {
 	return getImagesByBookID(bookID, dao.db)
+}
+
+func (dao *postgresBookDAO) GetUserInfoByID(userID string) (user.UserInfo, error) {
+	// TODO: pending impl
+	return user.UserInfo{}, nil
 }
 
 func (dao *postgresBookDAO) LikedBy(bookID, userID string) (bool, error) {

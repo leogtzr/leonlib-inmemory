@@ -8,4 +8,5 @@ import (
 var (
 	SessionStore *sessions.CookieStore
 	Config       *oauth2.Config
+	MainUser     string
 )

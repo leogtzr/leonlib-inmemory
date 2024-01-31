@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	book "leonlib/internal/types"
+	user "leonlib/internal/types"
 	"log"
 	"os"
 	"path/filepath"
@@ -235,6 +236,11 @@ func (dao *memoryBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, e
 	}
 
 	return images, nil
+}
+
+func (dao *memoryBookDAO) GetUserInfoByID(userID string) (user.UserInfo, error) {
+	// TODO: pending impl
+	return user.UserInfo{}, nil
 }
 
 func (dao *memoryBookDAO) LikedBy(bookID, userID string) (bool, error) {

@@ -14,6 +14,7 @@ import (
 	"leonlib/internal/captcha"
 	"leonlib/internal/dao"
 	book "leonlib/internal/types"
+	user "leonlib/internal/types"
 	"log"
 	"math"
 	"net/http"
@@ -64,22 +65,9 @@ type PageResultsVariables struct {
 	Pages        []int
 }
 
-type UserInfo struct {
-	Sub      string `json:"sub"`            // Identificador único del usuario
-	Name     string `json:"name"`           // Nombre completo del usuario
-	Nickname string `json:"nickname"`       // Apodo del usuario
-	Picture  string `json:"picture"`        // URL de la imagen de perfil del usuario
-	Email    string `json:"email"`          // Correo electrónico del usuario
-	Verified bool   `json:"email_verified"` // Si el correo electrónico está verificado
-}
-
 // LikeStatus { "status" : "error" | "liked" | "not-liked" }
 type LikeStatus struct {
 	Status string
-}
-
-func (ui UserInfo) String() string {
-	return fmt.Sprintf("Name=(%s), email=(%s), nickname=(%s), verified=(%t), sub=(%s)", ui.Name, ui.Email, ui.Nickname, ui.Verified, ui.Sub)
 }
 
 func generateRandomString(length int) string {
@@ -123,12 +111,12 @@ func parseBookSearchType(input string) book.BookSearchType {
 	}
 }
 
-func getDevUserInfo() (*UserInfo, error) {
+func getDevUserInfo() (*user.UserInfo, error) {
 	if !isDevMode() {
 		return nil, fmt.Errorf("no dev mode")
 	}
 
-	var userInfo UserInfo
+	var userInfo user.UserInfo
 	userInfo.Nickname = "Leo"
 	userInfo.Name = "Leo"
 	userInfo.Email = os.Getenv("LEONLIB_MAINAPP_USER")
@@ -138,7 +126,7 @@ func getDevUserInfo() (*UserInfo, error) {
 	return &userInfo, nil
 }
 
-func getUserInfoFromAuth0(accessToken string) (*UserInfo, error) {
+func getUserInfoFromAuth0(accessToken string) (*user.UserInfo, error) {
 	userInfoEndpoint := fmt.Sprintf("https://%s/userinfo", os.Getenv("AUTH0_DOMAIN"))
 
 	req, err := http.NewRequest("GET", userInfoEndpoint, nil)
@@ -164,7 +152,7 @@ func getUserInfoFromAuth0(accessToken string) (*UserInfo, error) {
 		return nil, fmt.Errorf("error en la respuesta de Auth0: %s", body)
 	}
 
-	var userInfo UserInfo
+	var userInfo user.UserInfo
 	err = json.Unmarshal(body, &userInfo)
 	if err != nil {
 		return nil, fmt.Errorf("error al decodificar la respuesta JSON: %v", err)
@@ -250,7 +238,11 @@ func getCurrentUserID(r *http.Request) (string, error) {
 
 	userID, ok := session.Values["user_id"].(string)
 	if !ok {
-		return "", errors.New("0) user_id not found in session")
+		return "", errors.New("user_id not found in session")
+	}
+
+	for k, v := range session.Values {
+		fmt.Printf("k=(%v), v=(%v)\n", k, v)
 	}
 
 	fmt.Println("--------")
@@ -481,7 +473,7 @@ func AllBooksPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setAuthenticationForPageResults(r, &pageVariables)
+	setAuthenticationForPageResults(r, &pageVariables, dao)
 
 	templateDir := os.Getenv("TEMPLATE_DIR")
 	if templateDir == "" {
@@ -775,11 +767,15 @@ func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("debug:x User info: \n")
 	fmt.Printf("debug:x user=(%s)\n", userInfo)
 
+	//
+
 	err = (*dao).AddUser(userInfo.Sub, userInfo.Email, userInfo.Name, "Google")
 	if err != nil {
 		http.Error(w, "Error al guardar el usuario en la base de datos", http.StatusInternalServerError)
 		return
 	}
+
+	// (*dao).du
 
 	session, _ := auth.SessionStore.Get(r, "user-session")
 	session.Values["user_id"] = userInfo.Sub
@@ -819,12 +815,22 @@ func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func setAuthenticationForPageResults(r *http.Request, pageResultsVariables *PageResultsVariables) {
-	if _, err := getCurrentUserID(r); err != nil {
+func setAuthenticationForPageResults(r *http.Request, pageResultsVariables *PageResultsVariables, dao *dao.DAO) {
+	dbID, err := getCurrentUserID(r)
+	if err != nil {
 		log.Printf("error: checking authentication information for user '%v'", err)
 		pageResultsVariables.LoggedIn = false
 	} else {
 		pageResultsVariables.LoggedIn = true
+		if isDevMode() {
+			pageResultsVariables.IsAdmin = true
+			return
+		}
+		userInfo, err := (*dao).GetUserInfoByID(dbID)
+		if err != nil {
+			log.Printf("error: %v", err)
+		}
+		pageResultsVariables.IsAdmin = userInfo.Email == os.Getenv("LEONLIB_MAINAPP_USER")
 	}
 }
 
@@ -1018,13 +1024,13 @@ func InfoBook(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 
-	pageVariables := PageResultsVariables{
+	pageVariables := &PageResultsVariables{
 		Year:    now.Format("2006"),
 		SiteKey: captcha.SiteKey,
 		Results: []book.BookInfo{bookByID},
 	}
 
-	setAuthenticationForPageResults(r, &pageVariables)
+	setAuthenticationForPageResults(r, pageVariables, dao)
 
 	templatePath := getTemplatePath("book_info.html")
 

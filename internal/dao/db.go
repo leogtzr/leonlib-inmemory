@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	book "leonlib/internal/types"
+	user "leonlib/internal/types"
 )
 
 // DAO
@@ -20,6 +21,7 @@ type DAO interface {
 	GetBooksWithPagination(offset, limit int) ([]book.BookInfo, error)
 	GetBooksBySearchTypeCoincidence(titleSearchText string, bookSearchType book.BookSearchType) ([]book.BookInfo, error)
 	GetImagesByBookID(bookID int) ([]book.BookImageInfo, error)
+	GetUserInfoByID(userID string) (user.UserInfo, error)
 	LikedBy(bookID, userID string) (bool, error)
 	LikeBook(bookID, userID string) error
 	LikesCount(bookID int) (int, error)
@@ -56,7 +58,7 @@ func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, err
 		if err != nil {
 			return nil, err
 		}
-		err = addBooksToDatabase(DB)
+		err = addBooksToDatabase(DB, &bookDAO)
 		if err != nil {
 			return nil, err
 		}
@@ -180,6 +182,28 @@ func addUser(db *sql.DB, userID, email, name, oauthIdentifier string) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func dumpUsersTable(db *sql.DB) error {
+	usersRows, err := db.Query(`SELECT * FROM users`)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = usersRows.Close()
+	}()
+
+	for usersRows.Next() {
+		var userID, email, name, oauthIdentifier string
+		if err = usersRows.Scan(&userID, &email, &name, &oauthIdentifier); err != nil {
+			return err
+		}
+
+		fmt.Printf("debug:x (dump u) userID=(%s), email=(%s), name=(%s), oauthIdentifier=(%s)\n", userID, email, name, oauthIdentifier)
 	}
 
 	return nil
