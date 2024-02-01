@@ -418,10 +418,6 @@ func (dao *sqliteBookDAO) UnlikeBook(bookID, userID string) error {
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
