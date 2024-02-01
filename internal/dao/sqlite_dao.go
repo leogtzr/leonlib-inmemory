@@ -318,15 +318,6 @@ func (dao *sqliteBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo, e
 	return getImagesByBookID(bookID, dao.db)
 }
 
-/*
-CREATE TABLE IF NOT EXISTS users (
-
-		user_id TEXT PRIMARY KEY,
-		email TEXT NOT NULL UNIQUE,
-		name TEXT,
-		oauth_identifier TEXT NOT NULL
-	)
-*/
 func (dao *sqliteBookDAO) GetUserInfoByID(id string) (user.UserInfo, error) {
 	var err error
 	var queryStr = `SELECT u.user_id, u.email, u.name FROM users u WHERE u.user_id=$1`
@@ -353,6 +344,7 @@ func (dao *sqliteBookDAO) GetUserInfoByID(id string) (user.UserInfo, error) {
 		userInfo.Email = email
 		userInfo.Name = name
 	}
+
 	return userInfo, nil
 }
 

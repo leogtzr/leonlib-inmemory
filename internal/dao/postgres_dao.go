@@ -205,9 +205,34 @@ func (dao *postgresBookDAO) GetImagesByBookID(bookID int) ([]book.BookImageInfo,
 	return getImagesByBookID(bookID, dao.db)
 }
 
-func (dao *postgresBookDAO) GetUserInfoByID(userID string) (user.UserInfo, error) {
-	// TODO: pending impl
-	return user.UserInfo{}, nil
+func (dao *postgresBookDAO) GetUserInfoByID(id string) (user.UserInfo, error) {
+	var err error
+	var queryStr = `SELECT u.user_id, u.email, u.name FROM users u WHERE u.user_id=$1`
+
+	userRow, err := dao.db.Query(queryStr, id)
+	if err != nil {
+		return user.UserInfo{}, err
+	}
+
+	defer func() {
+		_ = userRow.Close()
+	}()
+
+	var userInfo user.UserInfo
+	var userID string
+	var email string
+	var name string
+	if userRow.Next() {
+		if err := userRow.Scan(&userID, &email, &name); err != nil {
+			return user.UserInfo{}, err
+		}
+
+		userInfo.Sub = userID
+		userInfo.Email = email
+		userInfo.Name = name
+	}
+
+	return userInfo, nil
 }
 
 func (dao *postgresBookDAO) LikedBy(bookID, userID string) (bool, error) {
