@@ -396,8 +396,7 @@ func (dao *sqliteBookDAO) Ping() error {
 }
 
 func (dao *sqliteBookDAO) RemoveImage(imageID int) error {
-	_, err := dao.db.Exec("DELETE FROM book_images WHERE image_id=$1", imageID)
-	if err != nil {
+	if _, err := dao.db.Exec("DELETE FROM book_images WHERE image_id=$1", imageID); err != nil {
 		return err
 	}
 
@@ -405,8 +404,7 @@ func (dao *sqliteBookDAO) RemoveImage(imageID int) error {
 }
 
 func (dao *sqliteBookDAO) UnlikeBook(bookID, userID string) error {
-	_, err := dao.db.Exec("DELETE FROM book_likes WHERE book_id=$1 AND user_id=$2", bookID, userID)
-	if err != nil {
+	if _, err := dao.db.Exec("DELETE FROM book_likes WHERE book_id=$1 AND user_id=$2", bookID, userID); err != nil {
 		return err
 	}
 
