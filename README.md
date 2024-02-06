@@ -27,3 +27,31 @@ Dockerfile file.
 To run the app using the SQLite application, use the `run_app_with_sqlite.sh` script. 
 
 You can also run the application using an `in-memory` database, for that, use the `run_app_in_memory.sh` script.
+
+## How it looks
+
+### Home Page
+
+![home page](./images/howitlooks/index.png)
+
+### Searching a book
+
+![search](./images/howitlooks/search.png)
+
+### Books per author
+
+![books per author](./images/howitlooks/books_per_author.png)
+
+### Book Information
+
+![books per author](./images/howitlooks/book_info.png)
+
+### All the books
+
+![all books](./images/howitlooks/allbooks.png)
+
+### Authentication
+
+There is a simple Auth mechanism used to like any book in my library.
+
+![auth](./images/howitlooks/auth.png)
