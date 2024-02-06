@@ -50,8 +50,13 @@ You can also run the application using an `in-memory` database, for that, use th
 
 ![all books](./images/howitlooks/allbooks.png)
 
+### Add book
+
+![all books](./images/howitlooks/add_book.png)
+
 ### Authentication
 
 There is a simple Auth mechanism used to like any book in my library.
 
 ![auth](./images/howitlooks/auth.png)
+
