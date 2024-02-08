@@ -206,6 +206,30 @@ func redirectToErrorPageWithMessageAndStatusCode(w http.ResponseWriter, errorMes
 	}
 }
 
+func redirectToErrorLoginPage(w http.ResponseWriter) {
+	templatePath := getTemplatePath("error5xx.html")
+
+	t, err := template.ParseFiles(templatePath)
+	if err != nil {
+		log.Printf("error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	type ErrorVariables struct {
+		Year         string
+		ErrorMessage string
+	}
+
+	w.WriteHeader(http.StatusUnauthorized)
+
+	err = t.Execute(w, nil)
+	if err != nil {
+		log.Printf("error: %v", err)
+		return
+	}
+}
+
 func writeErrorGeneralStatus(w http.ResponseWriter, err error) {
 	log.Printf("error: %v", err)
 
@@ -1212,26 +1236,28 @@ func ContactPage(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func AddBookPage(w http.ResponseWriter, r *http.Request) {
-	/*
-		userID, err := getCurrentUserID(r)
+func AddBookPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
+	dbID, err := getCurrentUserID(r)
+	if err != nil {
+		redirectToErrorLoginPage(w)
+		return
+	}
+
+	if !isDevMode() {
+		userInfo, err := (*dao).GetUserInfoByID(dbID)
 		if err != nil {
-			redirectToErrorPageWithMessageAndStatusCode(w, "Error al obtener información de la sesión", http.StatusInternalServerError)
+			log.Printf("error: %v", err)
+			redirectToErrorLoginPage(w)
 
 			return
 		}
+		if userInfo.Email != os.Getenv("LEONLIB_MAINAPP_USER") {
+			log.Printf("error: %s is not %s", userInfo.Email, os.Getenv("LEONLIB_MAINAPP_USER"))
 
-		email, err := getDatabaseEmailFromSessionID(db, userID)
-
-		if err != nil {
-			redirectToErrorPageWithMessageAndStatusCode(w, "Only admins can access to this page", http.StatusForbidden)
-
+			redirectToErrorLoginPage(w)
 			return
 		}
-
-		fmt.Printf("debug:x email=(%s)\n", email)
-	*/
-
+	}
 	templatePath := getTemplatePath("add_book.html")
 
 	t, err := template.ParseFiles(templatePath)

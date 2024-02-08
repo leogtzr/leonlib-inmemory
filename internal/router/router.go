@@ -42,7 +42,7 @@ func initRoutes(dao *dao.DAO) {
 			"GET",
 			"/admin/add",
 			func(w http.ResponseWriter, r *http.Request) {
-				handler.AddBookPage(w, r)
+				handler.AddBookPage(dao, w, r)
 			},
 		},
 		Router{
