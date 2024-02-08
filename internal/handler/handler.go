@@ -207,7 +207,7 @@ func redirectToErrorPageWithMessageAndStatusCode(w http.ResponseWriter, errorMes
 }
 
 func redirectToErrorLoginPage(w http.ResponseWriter) {
-	templatePath := getTemplatePath("error5xx.html")
+	templatePath := getTemplatePath("errorLogin.html")
 
 	t, err := template.ParseFiles(templatePath)
 	if err != nil {
