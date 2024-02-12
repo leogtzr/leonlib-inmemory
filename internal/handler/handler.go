@@ -794,8 +794,6 @@ func Auth0Callback(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// (*dao).du
-
 	session, _ := auth.SessionStore.Get(r, "user-session")
 	session.Values["user_id"] = userInfo.Sub
 	session.Save(r, w)
