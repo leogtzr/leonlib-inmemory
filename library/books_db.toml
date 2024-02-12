@@ -5806,3 +5806,48 @@ description = ""
 hasBeenRead = false
 imageNames = [ "antesrenunciar.jpg" ]
 addedOn = "2024-01-25"
+
+[[book]]
+id = 662
+title = "Tu hij@ puede ser millonario. Cómo formar los tres pilares financieros para lograrlo"
+author = "Juan Luis Ordaz Díaz"
+description = ""
+hasBeenRead = true
+imageNames = [ "tu-hijo-millonario.jpg" ]
+addedOn = "2024-02-3"
+
+[[book]]
+id = 663
+title = "Melancolía"
+author = "Jon Fosse"
+description = ""
+hasBeenRead = true
+imageNames = [ "melancolia.jpg" ]
+addedOn = "2024-02-1"
+
+[[book]]
+id = 664
+title = "Ikigai. Los secretos de Japón para una vida larga y feliz"
+author = "Héctor García & Francesc Miralles"
+description = "Editorial Urano"
+hasBeenRead = false
+imageNames = [ "ikigai.jpg" ]
+addedOn = "2024-02-6"
+
+[[book]]
+id = 665
+title = "Las uvas de ira"
+author = "John Steinback"
+description = "Editorial Alianza"
+hasBeenRead = false
+imageNames = [ "uvas-de-la-ira.jpg" ]
+addedOn = "2024-02-1"
+
+[[book]]
+id = 666
+title = "Ulises"
+author = "James Joyce"
+description = "Editorial AlianzaLit"
+hasBeenRead = false
+imageNames = [ "joyce-ulises.jpg" ]
+addedOn = "2024-02-1"
