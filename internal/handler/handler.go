@@ -65,11 +65,6 @@ type PageResultsVariables struct {
 	Pages        []int
 }
 
-// LikeStatus { "status" : "error" | "liked" | "not-liked" }
-type LikeStatus struct {
-	Status string
-}
-
 func generateRandomString(length int) string {
 	b := make([]byte, length)
 	_, err := rand.Read(b)
