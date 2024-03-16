@@ -1,8 +1,10 @@
 package router
 
 import (
+	"golang.org/x/time/rate"
 	"leonlib/internal/dao"
 	"leonlib/internal/handler"
+	"leonlib/internal/middleware"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,74 +24,74 @@ var routes Routes
 func initRoutes(dao *dao.DAO) {
 	routes = Routes{
 		Router{
-			"About Page",
-			"GET",
-			"/about",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "About Page",
+			Method: "GET",
+			Path:   "/about",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.AboutPage(w, r)
 			},
 		},
 		Router{
-			"All Books",
-			"GET",
-			"/allbooks",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "All Books",
+			Method: "GET",
+			Path:   "/allbooks",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.AllBooksPage(dao, w, r)
 			},
 		},
 		Router{
-			"Add Book Page",
-			"GET",
-			"/admin/add",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Add Book Page",
+			Method: "GET",
+			Path:   "/admin/add",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.AddBookPage(dao, w, r)
 			},
 		},
 		Router{
-			"Add Book",
-			"POST",
-			"/addbook",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Add Book",
+			Method: "POST",
+			Path:   "/addbook",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.AddBook(dao, w, r)
 			},
 		},
 		Router{
-			"Check Like Status",
-			"GET",
-			"/api/check_like/{book_id}",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Check Like Status",
+			Method: "GET",
+			Path:   "/api/check_like/{book_id}",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.CheckLikeStatus(dao, w, r)
 			},
 		},
 		Router{
-			"Init Database",
-			"GET",
-			"/admin/initdb",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Init Database",
+			Method: "GET",
+			Path:   "/admin/initdb",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.CreateDBFromFile(dao, w)
 			},
 		},
 		Router{
-			"Likes Count",
-			"GET",
-			"/api/likes_count",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Likes Count",
+			Method: "GET",
+			Path:   "/api/likes_count",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.LikesCount(dao, w, r)
 			},
 		},
 		Router{
-			"Like Book",
-			"POST",
-			"/api/like",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Like Book",
+			Method: "POST",
+			Path:   "/api/like",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.LikeBook(dao, w, r)
 			},
 		},
 		Router{
-			"Unlike Book",
-			"DELETE",
-			"/api/like",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Unlike Book",
+			Method: "DELETE",
+			Path:   "/api/like",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.UnlikeBook(dao, w, r)
 			},
 		},
@@ -108,78 +110,78 @@ func initRoutes(dao *dao.DAO) {
 		//	},
 		//},
 		Router{
-			"Auth0Callback",
-			"GET",
-			"/auth/callback",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Auth0Callback",
+			Method: "GET",
+			Path:   "/auth/callback",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.Auth0Callback(dao, w, r)
 			},
 		},
 		Router{
-			"Books by author",
-			"GET",
-			"/books_by_author",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Books by author",
+			Method: "GET",
+			Path:   "/books_by_author",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.BooksByAuthorPage(dao, w, r)
 			},
 		},
 		Router{
-			"Contact page",
-			"GET",
-			"/contact",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Contact page",
+			Method: "GET",
+			Path:   "/contact",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.ContactPage(w, r)
 			},
 		},
 		Router{
-			"ErrorPage",
-			"GET",
-			"/error",
-			handler.ErrorPage,
+			Name:        "ErrorPage",
+			Method:      "GET",
+			Path:        "/error",
+			HandlerFunc: handler.ErrorPage,
 		},
 		Router{
-			"IndexPage",
-			"GET",
-			"/",
-			handler.IndexPage,
+			Name:        "IndexPage",
+			Method:      "GET",
+			Path:        "/",
+			HandlerFunc: handler.IndexPage,
 		},
 		Router{
-			"Search for books",
-			"GET",
-			"/search_books",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Search for books",
+			Method: "GET",
+			Path:   "/search_books",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.SearchBooksPage(dao, w, r)
 			},
 		},
 		Router{
-			"Book Info",
-			"GET",
-			"/book_info",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Book Info",
+			Method: "GET",
+			Path:   "/book_info",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.InfoBook(dao, w, r)
 			},
 		},
 		Router{
-			"Modify Book Page",
-			"GET",
-			"/admin/modify",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Modify Book Page",
+			Method: "GET",
+			Path:   "/admin/modify",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.ModifyBookPage(dao, w, r)
 			},
 		},
 		Router{
-			"Modify Book",
-			"POST",
-			"/modify",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Modify Book",
+			Method: "POST",
+			Path:   "/modify",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.ModifyBook(dao, w, r)
 			},
 		},
 		Router{
-			"IngresarPage",
-			"GET",
-			"/ingresar",
-			handler.IngresarPage,
+			Name:        "IngresarPage",
+			Method:      "GET",
+			Path:        "/ingresar",
+			HandlerFunc: handler.IngresarPage,
 		},
 		//Router{
 		//	"Autocomplete",
@@ -190,37 +192,42 @@ func initRoutes(dao *dao.DAO) {
 		//	},
 		//},
 		Router{
-			"Books Count",
-			"GET",
-			"/api/booksCount",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Books Count",
+			Method: "GET",
+			Path:   "/api/booksCount",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.BooksCount(dao, w)
 			},
 		},
 		Router{
-			"Books List",
-			"GET",
-			"/api/books",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Books List",
+			Method: "GET",
+			Path:   "/api/books",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.BooksList(dao, w, r)
 			},
 		},
 		Router{
-			"Remove Image",
-			"POST",
-			"/removeimage",
-			func(w http.ResponseWriter, r *http.Request) {
+			Name:   "Remove Image",
+			Method: "POST",
+			Path:   "/removeimage",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				handler.RemoveImage(dao, w, r)
 			},
 		},
 	}
 }
 
-func NewRouter(dao *dao.DAO) *mux.Router {
+func NewRouter(dao *dao.DAO, limiter *rate.Limiter) *mux.Router {
 	initRoutes(dao)
 	router := mux.NewRouter().StrictSlash(true)
 
-	//rateLimiter := middleware.NewRateLimiterMiddleware(ratelimit.RedisClient, 1, 5)
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Tu lógica aquí
+	})
+
+	rateLimitMiddleware := middleware.RateLimitMiddlewareAdapter(limiter, nextHandler)
+	router.Use(rateLimitMiddleware)
 
 	for _, route := range routes {
 		router.

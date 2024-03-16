@@ -5,6 +5,7 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/oauth2"
+	"golang.org/x/time/rate"
 	"leonlib/internal/auth"
 	"leonlib/internal/captcha"
 	"leonlib/internal/dao"
@@ -75,7 +76,8 @@ func main() {
 		panic(err)
 	}
 
-	r := router.NewRouter(&dao)
+	var limiter = rate.NewLimiter(rate.Limit(1), 5) // Límite de 1 solicitud por segundo con una capacidad de ráfaga de 5 solicitudes
+	r := router.NewRouter(&dao, limiter)
 
 	fs := http.FileServer(http.Dir("assets/"))
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fs))
