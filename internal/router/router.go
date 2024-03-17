@@ -19,10 +19,8 @@ type Router struct {
 
 type Routes []Router
 
-var routes Routes
-
-func initRoutes(dao *dao.DAO) {
-	routes = Routes{
+func createRoutes(dao *dao.DAO) *Routes {
+	routes := &Routes{
 		Router{
 			Name:   "About Page",
 			Method: "GET",
@@ -216,20 +214,22 @@ func initRoutes(dao *dao.DAO) {
 			},
 		},
 	}
+
+	return routes
 }
 
 func NewRouter(dao *dao.DAO, limiter *rate.Limiter) *mux.Router {
-	initRoutes(dao)
+	routes := createRoutes(dao)
 	router := mux.NewRouter().StrictSlash(true)
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//
+
 	})
 
 	rateLimitMiddleware := middleware.RateLimitMiddlewareAdapter(limiter, nextHandler)
 	router.Use(rateLimitMiddleware)
 
-	for _, route := range routes {
+	for _, route := range *routes {
 		router.
 			Methods(route.Method).
 			Path(route.Path).
