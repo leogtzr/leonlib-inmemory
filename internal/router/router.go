@@ -223,7 +223,7 @@ func NewRouter(dao *dao.DAO, limiter *rate.Limiter) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Tu lógica aquí
+		//
 	})
 
 	rateLimitMiddleware := middleware.RateLimitMiddlewareAdapter(limiter, nextHandler)
