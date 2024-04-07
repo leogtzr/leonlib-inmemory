@@ -20,6 +20,7 @@ type DAO interface {
 	GetBookCount() (int, error)
 	GetBooksWithPagination(offset, limit int) ([]book.BookInfo, error)
 	GetBooksBySearchTypeCoincidence(titleSearchText string, bookSearchType book.BookSearchType) ([]book.BookInfo, error)
+	GetWishListBooks() ([]book.WishListBook, error)
 	GetImagesByBookID(bookID int) ([]book.BookImageInfo, error)
 	GetUserInfoByID(userID string) (user.UserInfo, error)
 	LikedBy(bookID, userID string) (bool, error)
@@ -32,17 +33,20 @@ type DAO interface {
 }
 
 type sqliteBookDAO struct {
-	db *sql.DB
+	db            *sql.DB
+	wishListBooks []book.WishListBook
 }
 
 type postgresBookDAO struct {
-	db *sql.DB
+	db            *sql.DB
+	wishListBooks []book.WishListBook
 }
 
 type memoryBookDAO struct {
-	books     *map[int]book.BookInfo
-	images    *map[int][]book.BookImageInfo
-	bookLikes *map[string][]string
+	books         *map[int]book.BookInfo
+	images        *map[int][]book.BookImageInfo
+	bookLikes     *map[string][]string
+	wishListBooks []book.WishListBook
 }
 
 func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, error) {
@@ -53,11 +57,19 @@ func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, err
 		if err != nil {
 			return nil, err
 		}
-		bookDAO = &sqliteBookDAO{db: DB}
+		wishListBooks, err := readWishListBooks()
+		if err != nil {
+			return nil, err
+		}
+		bookDAO = &sqliteBookDAO{
+			db:            DB,
+			wishListBooks: wishListBooks,
+		}
 		err = createDB(DB)
 		if err != nil {
 			return nil, err
 		}
+
 		err = addBooksToDatabase(DB, &bookDAO)
 		if err != nil {
 			return nil, err
@@ -74,7 +86,14 @@ func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, err
 		if err != nil {
 			return nil, err
 		}
-		bookDAO = &postgresBookDAO{db: DB}
+		wishListBooks, err := readWishListBooks()
+		if err != nil {
+			return nil, err
+		}
+		bookDAO = &postgresBookDAO{
+			db:            DB,
+			wishListBooks: wishListBooks,
+		}
 
 	case "memory":
 		db, err := createInMemoryDatabaseFromFile()
@@ -85,8 +104,16 @@ func NewDAO(dbMode, dbHost, dbPort, dbUser, dbPassword, dbName string) (DAO, err
 		if err != nil {
 			return nil, err
 		}
-
-		bookDAO = &memoryBookDAO{books: &db, images: &images, bookLikes: createInMemoryLikesDatabase()}
+		wishListBooks, err := readWishListBooks()
+		if err != nil {
+			return nil, err
+		}
+		bookDAO = &memoryBookDAO{
+			books:         &db,
+			images:        &images,
+			bookLikes:     createInMemoryLikesDatabase(),
+			wishListBooks: wishListBooks,
+		}
 	}
 
 	return bookDAO, nil

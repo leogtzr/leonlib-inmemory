@@ -64,6 +64,26 @@ func createInMemoryDatabaseFromFile() (map[int]book.BookInfo, error) {
 	return db, nil
 }
 
+func readWishListBooks() ([]book.WishListBook, error) {
+	libraryDir := "library"
+	libraryDirPath := filepath.Join(libraryDir, "wish_list.toml")
+
+	var library book.WishList
+
+	if _, err := toml.DecodeFile(libraryDirPath, &library); err != nil {
+		fmt.Println("Hmmmm")
+		return []book.WishListBook{}, err
+	}
+
+	db := make([]book.WishListBook, 0)
+
+	for _, book := range library.Book {
+		db = append(db, book)
+	}
+
+	return db, nil
+}
+
 func createInMemoryLikesDatabase() *map[string][]string {
 	// book_likes[userID::string][]string
 	db := make(map[string][]string)
@@ -353,4 +373,8 @@ func (dao *memoryBookDAO) UpdateBook(title string, author string, description st
 	(*dao.books)[id] = book
 
 	return nil
+}
+
+func (dao *memoryBookDAO) GetWishListBooks() ([]book.WishListBook, error) {
+	return dao.wishListBooks, nil
 }

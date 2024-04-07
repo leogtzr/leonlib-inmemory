@@ -48,6 +48,14 @@ type PageVariablesForAuthors struct {
 	LoggedIn bool
 }
 
+type PageResultsVariablesForWishList struct {
+	Year     string
+	SiteKey  string
+	Results  []book.WishListBook
+	LoggedIn bool
+	IsAdmin  bool
+}
+
 type PageResultsVariables struct {
 	Year         string
 	SiteKey      string
@@ -1294,6 +1302,40 @@ func RemoveImage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte("Image removed OK..."))
+}
+
+func WishListBooksPage(dao *dao.DAO, w http.ResponseWriter, _ *http.Request) {
+	templatePath := getTemplatePath("wishlistbooks.html")
+
+	t, err := template.ParseFiles(templatePath)
+	if err != nil {
+		redirectToErrorPageWithMessageAndStatusCode(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	now := time.Now()
+
+	var results []book.WishListBook
+
+	results, err = (*dao).GetWishListBooks()
+	if err != nil {
+		redirectToErrorPageWithMessageAndStatusCode(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	pageVariables := PageResultsVariablesForWishList{
+		Year:     now.Format("2006"),
+		SiteKey:  captcha.SiteKey,
+		IsAdmin:  false, // TODO: pending
+		LoggedIn: false,
+		Results:  results,
+	}
+
+	err = t.Execute(w, pageVariables)
+	if err != nil {
+		redirectToErrorPageWithMessageAndStatusCode(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func isDevMode() bool {

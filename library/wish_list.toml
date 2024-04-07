@@ -1,0 +1,15 @@
+[[book]]
+id = 1
+title = "Mitología: Todos los relatos griegos, latinos y nórdicos"
+author = "Edith Hamilton"
+description = ""
+imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1291755937i/9853407.jpg"
+goodreadsLink = "https://www.goodreads.com/book/show/9853407-mitolog-a?ac=1&from_search=true&qid=bOKXmh1aBl&rank=1"
+
+[[book]]
+id = 2
+title = "El arco iris de gravedad"
+author = "Thomas Pynchon"
+description = "La versión en español."
+imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1657594227i/415.jpg"
+goodreadsLink = "https://www.goodreads.com/book/show/415.Gravity_s_Rainbow?ac=1&from_search=true&qid=vvTUuwt21l&rank=1"

@@ -301,3 +301,7 @@ func (dao *postgresBookDAO) UnlikeBook(bookID, userID string) error {
 func (dao *postgresBookDAO) UpdateBook(title string, author string, description string, read bool, goodreadsLink string, id int) error {
 	return updateBook(title, author, description, read, goodreadsLink, id, dao.db)
 }
+
+func (dao *postgresBookDAO) GetWishListBooks() ([]book.WishListBook, error) {
+	return dao.wishListBooks, nil
+}

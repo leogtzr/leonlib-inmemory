@@ -414,3 +414,7 @@ func (dao *sqliteBookDAO) UnlikeBook(bookID, userID string) error {
 func (dao *sqliteBookDAO) UpdateBook(title string, author string, description string, read bool, goodreadsLink string, id int) error {
 	return updateBook(title, author, description, read, goodreadsLink, id, dao.db)
 }
+
+func (dao *sqliteBookDAO) GetWishListBooks() ([]book.WishListBook, error) {
+	return dao.wishListBooks, nil
+}

@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+type WishListBook struct {
+	ID            int
+	Title         string
+	Author        string
+	Description   string
+	ImageLink     string
+	GoodreadsLink string
+}
+
 // BookInfo ...
 type BookInfo struct {
 	ID            int
@@ -65,6 +74,10 @@ type BookLike struct {
 
 type Library struct {
 	Book []BookInfo
+}
+
+type WishList struct {
+	Book []WishListBook
 }
 
 func (bi BookInfo) String() string {

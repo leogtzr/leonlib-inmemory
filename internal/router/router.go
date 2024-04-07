@@ -213,6 +213,14 @@ func createRoutes(dao *dao.DAO) *Routes {
 				handler.RemoveImage(dao, w, r)
 			},
 		},
+		Router{
+			Name:   "Wish List Books",
+			Method: "GET",
+			Path:   "/wishlist",
+			HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
+				handler.WishListBooksPage(dao, w, r)
+			},
+		},
 	}
 
 	return routes
