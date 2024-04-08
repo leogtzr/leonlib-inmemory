@@ -13,3 +13,11 @@ author = "Thomas Pynchon"
 description = "La versión en español."
 imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1657594227i/415.jpg"
 goodreadsLink = "https://www.goodreads.com/book/show/415.Gravity_s_Rainbow?ac=1&from_search=true&qid=vvTUuwt21l&rank=1"
+
+[[book]]
+id = 3
+title = "Mason y Dixon"
+author = "Thomas Pynchon"
+description = ""
+imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1507450661i/277022.jpg"
+goodreadsLink = "https://www.goodreads.com/book/show/277022.Mason_y_Dixon?ac=1&from_search=true&qid=mFyx9EhFem&rank=2"
