@@ -21,3 +21,11 @@ author = "Thomas Pynchon"
 description = ""
 imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1507450661i/277022.jpg"
 goodreadsLink = "https://www.goodreads.com/book/show/277022.Mason_y_Dixon?ac=1&from_search=true&qid=mFyx9EhFem&rank=2"
+
+[[book]]
+id = 4
+title = "Crafting Interpreters"
+author = "Robert Nystrom"
+description = ""
+imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1627644403i/58661468.jpg"
+goodreadsLink = "https://www.goodreads.com/book/show/58661468-crafting-interpreters?from_search=true&from_srp=true&qid=FJ398I71nn&rank=1"
