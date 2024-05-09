@@ -29,6 +29,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+var (
+	useAnalytics = os.Getenv("USE_ANALYTICS") == "true"
+)
+
 const numberOfResultsByPage = 20
 
 type RequestData struct {
@@ -36,24 +40,27 @@ type RequestData struct {
 }
 
 type PageVariables struct {
-	Year     string
-	SiteKey  string
-	LoggedIn bool
+	Year         string
+	SiteKey      string
+	LoggedIn     bool
+	UseAnalytics bool
 }
 
 type PageVariablesForAuthors struct {
-	Year     string
-	SiteKey  string
-	Authors  []string
-	LoggedIn bool
+	Year         string
+	SiteKey      string
+	Authors      []string
+	LoggedIn     bool
+	UseAnalytics bool
 }
 
 type PageResultsVariablesForWishList struct {
-	Year     string
-	SiteKey  string
-	Results  []book.WishListBook
-	LoggedIn bool
-	IsAdmin  bool
+	Year         string
+	SiteKey      string
+	Results      []book.WishListBook
+	LoggedIn     bool
+	IsAdmin      bool
+	UseAnalytics bool
 }
 
 type PageResultsVariables struct {
@@ -71,6 +78,7 @@ type PageResultsVariables struct {
 	StartPage    int
 	EndPage      int
 	Pages        []int
+	UseAnalytics bool
 }
 
 func generateRandomString(length int) string {
@@ -320,8 +328,9 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 
 	pageVariables := PageVariables{
-		Year:    now.Format("2006"),
-		SiteKey: captcha.SiteKey,
+		Year:         now.Format("2006"),
+		SiteKey:      captcha.SiteKey,
+		UseAnalytics: useAnalytics,
 	}
 
 	_, err := getCurrentUserID(r)
@@ -355,8 +364,9 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 func BooksByAuthorPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	pageVariables := PageVariablesForAuthors{
-		Year:    now.Format("2006"),
-		SiteKey: captcha.SiteKey,
+		Year:         now.Format("2006"),
+		SiteKey:      captcha.SiteKey,
+		UseAnalytics: useAnalytics,
 	}
 
 	authors, err := (*dao).GetAllAuthors()
@@ -491,6 +501,7 @@ func AllBooksPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageVariables := PageResultsVariables{}
+	pageVariables.UseAnalytics = useAnalytics
 	pageVariables.Results = books
 
 	err = setUpPaginationFor(pageInt, dao, &pageVariables)
@@ -655,9 +666,10 @@ func SearchBooksPage(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 	pageVariables := PageResultsVariables{
-		Year:    now.Format("2006"),
-		SiteKey: captcha.SiteKey,
-		Results: results,
+		Year:         now.Format("2006"),
+		SiteKey:      captcha.SiteKey,
+		Results:      results,
+		UseAnalytics: useAnalytics,
 	}
 
 	templatePath := getTemplatePath("search_books.html")
@@ -1045,9 +1057,10 @@ func InfoBook(dao *dao.DAO, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 
 	pageVariables := &PageResultsVariables{
-		Year:    now.Format("2006"),
-		SiteKey: captcha.SiteKey,
-		Results: []book.BookInfo{bookByID},
+		Year:         now.Format("2006"),
+		SiteKey:      captcha.SiteKey,
+		Results:      []book.BookInfo{bookByID},
+		UseAnalytics: useAnalytics,
 	}
 
 	setAuthenticationForPageResults(r, pageVariables, dao)
@@ -1201,9 +1214,10 @@ func AboutPage(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 
 	pageVariables := PageVariables{
-		Year:     now.Format("2006"),
-		SiteKey:  captcha.SiteKey,
-		LoggedIn: false,
+		Year:         now.Format("2006"),
+		SiteKey:      captcha.SiteKey,
+		LoggedIn:     false,
+		UseAnalytics: useAnalytics,
 	}
 
 	err = t.Execute(w, pageVariables)
@@ -1225,9 +1239,10 @@ func ContactPage(w http.ResponseWriter, _ *http.Request) {
 	now := time.Now()
 
 	pageVariables := PageVariables{
-		Year:     now.Format("2006"),
-		SiteKey:  captcha.SiteKey,
-		LoggedIn: false,
+		Year:         now.Format("2006"),
+		SiteKey:      captcha.SiteKey,
+		LoggedIn:     false,
+		UseAnalytics: useAnalytics,
 	}
 
 	err = t.Execute(w, pageVariables)
@@ -1324,11 +1339,12 @@ func WishListBooksPage(dao *dao.DAO, w http.ResponseWriter, _ *http.Request) {
 	}
 
 	pageVariables := PageResultsVariablesForWishList{
-		Year:     now.Format("2006"),
-		SiteKey:  captcha.SiteKey,
-		IsAdmin:  false, // TODO: pending
-		LoggedIn: false,
-		Results:  results,
+		Year:         now.Format("2006"),
+		SiteKey:      captcha.SiteKey,
+		IsAdmin:      false, // TODO: pending
+		LoggedIn:     false,
+		Results:      results,
+		UseAnalytics: useAnalytics,
 	}
 
 	err = t.Execute(w, pageVariables)
