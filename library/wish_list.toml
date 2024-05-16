@@ -53,3 +53,11 @@ author = "Carlos Ruiz Zafón"
 description = ""
 imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1472484895i/31700489.jpg"
 goodreadsLink = "https://www.goodreads.com/book/show/31700489-el-laberinto-de-los-esp-ritus?from_search=true&from_srp=true&qid=narOjFMmeL&rank=1"
+
+[[book]]
+id = 8
+title = "Los demonios"
+author = "Fedor Dostoievski"
+description = ""
+imageLink = "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1410078500i/18622076.jpg"
+goodreadsLink = "https://www.goodreads.com/book/show/18622076-los-demonios?ac=1&from_search=true&qid=rMwsOBZmLt&rank=2"
