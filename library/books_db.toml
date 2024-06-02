@@ -5836,18 +5836,126 @@ addedOn = "2024-02-6"
 
 [[book]]
 id = 665
-title = "Las uvas de ira"
-author = "John Steinback"
-description = "Editorial Alianza"
-hasBeenRead = false
-imageNames = [ "uvas-de-la-ira.jpg" ]
-addedOn = "2024-02-1"
-
-[[book]]
-id = 666
 title = "Ulises"
 author = "James Joyce"
 description = "Editorial AlianzaLit"
 hasBeenRead = false
 imageNames = [ "joyce-ulises.jpg" ]
 addedOn = "2024-02-1"
+
+[[book]]
+id = 666
+title = "Retrato del artista adolescente"
+author = "James Joyce"
+description = "Ediciones Coyoacán"
+hasBeenRead = false
+imageNames = [ "retrato-artista1.jpg", "retrato-artista2.jpg" ]
+addedOn = "2024-05-27"
+
+[[book]]
+id = 667
+title = "El alpinismo en 10 lecciones y todo sobre la escalada de la A a la Z"
+author = "Jean Carron"
+description = "Ediciones Cantabrica"
+hasBeenRead = false
+imageNames = [ "alpinismo-10lecciones.jpg" ]
+addedOn = "2024-05-27"
+
+[[book]]
+id = 668
+title = "El amor en los tiempos del cólera"
+author = "Gabriel García Márquez"
+description = ""
+hasBeenRead = false
+imageNames = [ "amor-en-los-tiempos.jpg" ]
+addedOn = "2024-03-01"
+
+[[book]]
+id = 669
+title = "Los hermanos Karámazov"
+author = "Fedor Dostoievski"
+description = "Alianza Editorial"
+hasBeenRead = false
+imageNames = [ "hermanos-karama.jpg" ]
+addedOn = "2024-05-27"
+
+[[book]]
+id = 670
+title = "Investigaciones de un perro y otros cuentos"
+author = "Franz Kafka"
+description = "Ediciones Prisma"
+hasBeenRead = false
+imageNames = [ "investigaciones-de-un-perro.jpg", "investigaciones-de-un-perro2.jpg" ]
+addedOn = "2024-05-27"
+
+[[book]]
+id = 671
+title = "Ojos de perro azul"
+author = "Gabriel García Márquez"
+description = ""
+hasBeenRead = false
+imageNames = [ "ojos-perro-azul.jpg" ]
+addedOn = "2024-03-01"
+
+[[book]]
+id = 672
+title = "El paraíso perdido, El paraíso recobrado"
+author = "John Milton"
+description = "Editorial Fontamara"
+hasBeenRead = false
+imageNames = [ "paraiso-perdido-recobrado.jpg" ]
+addedOn = "2024-05-27"
+
+[[book]]
+id = 673
+title = "Retrato del artista adolescente"
+author = "James Joyce"
+description = "Colección Reino Imaginario"
+hasBeenRead = false
+imageNames = [ "retrato-artista1.jpg", "retrato-artista2.jpg" ]
+addedOn = "2024-05-27"
+
+[[book]]
+id = 674
+title = "Uso de razón"
+author = "Ricardo García Damborenea"
+description = ""
+hasBeenRead = false
+imageNames = [ "uso-de-raz.jpg" ]
+addedOn = "2024-02-17"
+
+[[book]]
+id = 675
+title = "Las uvas de la ira"
+author = "John Steinbeck"
+description = "Alianza Editorial"
+hasBeenRead = false
+imageNames = [ "uvas-de-la-lira.jpg" ]
+addedOn = "2024-02-17"
+
+[[book]]
+id = 676
+title = "Generación Idiota"
+author = "Agustín Laje"
+description = "Editorial HarperCollins"
+hasBeenRead = false
+imageNames = [ "generation-idiota.jpg" ]
+addedOn = "2024-05-11"
+
+[[book]]
+id = 677
+title = "El paraíso perdido"
+author = "John Milton"
+description = "Por Don Cayetano Rosell, ilustraciones por Gustavo Dore"
+hasBeenRead = false
+imageNames = [ "paraiso-old1.jpg", "paraiso-old2.jpg" ]
+addedOn = "2024-05-27"
+
+[[book]]
+id = 678
+title = "La psicología del dinero"
+author = "Morgan Housel"
+description = "Editorial Paidós Empresa"
+hasBeenRead = false
+imageNames = [ "psicolo.jpg" ]
+addedOn = "2024-04-27"
