@@ -1669,7 +1669,7 @@ addedOn = "2023-11-11"
 id = 191
 title = "Muchas vidas, muchos maestros"
 author = "Brian Weiss"
-description = "Editorial Alfaguara"
+description = "Editorial Vergara"
 hasBeenRead = true
 imageNames = [ "198.jpg" ]
 addedOn = "2023-11-11"
@@ -4209,7 +4209,7 @@ addedOn = "2023-11-11"
 id = 483
 title = "El ego es el enemigo"
 author = "Ryan Holiday"
-description = ""
+description = "Editorial Paidós"
 hasBeenRead = true
 imageNames = [ "517.jpg" ]
 addedOn = "2023-11-11"
@@ -4218,7 +4218,7 @@ addedOn = "2023-11-11"
 id = 484
 title = "Meditaciones"
 author = "Marco Aurelio"
-description = ""
+description = "Editorial Taurus"
 hasBeenRead = false
 imageNames = [ "518.jpg" ]
 addedOn = "2023-11-11"
@@ -5959,3 +5959,300 @@ description = "Editorial Paidós Empresa"
 hasBeenRead = false
 imageNames = [ "psicolo.jpg" ]
 addedOn = "2024-04-27"
+
+[[book]]
+id = 679
+title = "1984"
+author = "George Orwell"
+description = "Editorial Debolsillo"
+hasBeenRead = false
+imageNames = [ "1984-george-orwell.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 680
+title = "Adaptarse"
+author = "Clara Dupont-Monod"
+description = "Editorial Salamandra"
+hasBeenRead = false
+imageNames = [ "adaptarse-clara-dupont-monod.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 681
+title = "Amor al prójimo"
+author = "Gabriela Enríquez"
+description = "Editorial Random House"
+hasBeenRead = false
+imageNames = [ "amor-al-projimo-enriquez.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 682
+title = "La batalla cultural"
+author = "Agustín Laje"
+description = "Editorial HarperCollins México"
+hasBeenRead = false
+imageNames = [ "batalla-cultura-laje.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 683
+title = "Carta al padre"
+author = "Franz Kafka"
+description = "Editorial Debolsillo"
+hasBeenRead = false
+imageNames = [ "carta-al-padre-kafka.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 684
+title = "Cómo hacer que te pasen cosas buenas"
+author = "Marian Rojas Estapé"
+description = "Editorial Espasa"
+hasBeenRead = false
+imageNames = [ "como-hacer-que-te-pasen-cosas-buenas-estapé.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 685
+title = "Consejos y dinero Cuento"
+author = "A. Vanegas Arroyo"
+description = "Instituto Cultural de Aguscalientes"
+hasBeenRead = false
+imageNames = [ "consejos-y-dinero-cuento.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 686
+title = "El vendedor de juguetes Cuento"
+author = "A. Vanegas Arroyo"
+description = "Instituto Cultural de Aguscalientes"
+hasBeenRead = false
+imageNames = [ "el-vendedor-de-juguetes-cuento.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 687
+title = "Contra el Apagón - Voces de Gaza durante el genocidio"
+author = "Shadi Rohana"
+description = "Editorial Vientos del pueblo Fondo de Cultura Económica"
+hasBeenRead = false
+imageNames = [ "contra-el-apagon-vientos-del-pueblo.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 688
+title = "Elvia Carrillo Puerto"
+author = "Damiana Leyva Loría"
+description = "Editorial Vientos del pueblo Fondo de Cultura Económica"
+hasBeenRead = false
+imageNames = [ "elvia-carrillo-puerto-vientos-del-pueblo.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 689
+title = "Falsa Liebre"
+author = "Fernanda Melchor"
+description = "Editorial Random House"
+hasBeenRead = false
+imageNames = [ "falsa-liebre-melchor.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 690
+title = "Génesis Versión Recobro"
+author = "Living Stream Ministry"
+description = "Editorial Living Stream Ministry"
+hasBeenRead = false
+imageNames = [ "genesis-version-recobro.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 691
+title = "Los hermanos Karamázov, Volumen 1"
+author = "Fedor Dostoievski"
+description = "Editorial Alianza"
+hasBeenRead = false
+imageNames = [ "hermanos-kara-1-alianza.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 692
+title = "Los hermanos Karamázov, Volumen 2"
+author = "Fedor Dostoievski"
+description = "Editorial Alianza"
+hasBeenRead = false
+imageNames = [ "hermanos-kara-2-alianza.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 693
+title = "Ilíada"
+author = "Homero"
+description = "Editorial Alianza"
+hasBeenRead = false
+imageNames = [ "iliada-homero-1.jpg", "iliada-homero-2.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 694
+title = "La mujer rota"
+author = "Simone de Beauvoir"
+description = "Editorial Debolsillo"
+hasBeenRead = true
+imageNames = [ "la-mujer-rota.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 695
+title = "Las lunas de Júpiter"
+author = "Alice Munro"
+description = "Editorial Debolsillo"
+hasBeenRead = false
+imageNames = [ "las-lunas-de-jupiter-munro.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 696
+title = "Mis días en la librería Morisaki"
+author = "Satoshi Yagisawa"
+description = "Editorial Plata"
+hasBeenRead = false
+imageNames = [ "libreria-morisaki.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 697
+title = "Nada"
+author = "Carmen Laforet"
+description = "Editorial Cátedra"
+hasBeenRead = false
+imageNames = [ "nada-laforet.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 698
+title = "Piscis"
+author = "Marion Williamson, Pam Carruthers"
+description = "Editorial Matiri"
+hasBeenRead = false
+imageNames = [ "piscis-matiri.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 699
+title = "Por esos ojos, Retratos de una realidad incómoda"
+author = "Manuel Antonio Ramirez"
+description = "Editorial Macr"
+hasBeenRead = false
+imageNames = [ "por-esos-ojos-ramirez.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 700
+title = "Por qué fracasan los países"
+author = "Daron Acemoglu, James A. Robinson"
+description = "Editorial Crítica"
+hasBeenRead = false
+imageNames = [ "porque-fracasan-los-paises.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 701
+title = "La revolución de la glucosa"
+author = "Jessie Inchauspé"
+description = "Editorial Diana"
+hasBeenRead = false
+imageNames = [ "revolucion-glucosa-inchauspé.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 702
+title = "Tan poca vida"
+author = "Hanya Yanagihara"
+description = "Editorial Lumen"
+hasBeenRead = false
+imageNames = [ "tan-poca-vida-yanagihara.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 703
+title = "Un lugar soleado para gente sombría"
+author = "Mariana Enríquez"
+description = "Editorial Anagrama"
+hasBeenRead = false
+imageNames = [ "un-lugar-soleado-para-gente-sombria-enriquez.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 704
+title = "Viaje al final de la noche"
+author = "Louis-Ferdinand Céline"
+description = "Editorial Pocket edhasa"
+hasBeenRead = false
+imageNames = [ "viaje-final-noche-celine.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 705
+title = "El invencible verano de Liliana"
+author = "Cristina Garza"
+description = "Editorial Debolsillo"
+hasBeenRead = true
+imageNames = [ "invencible-verano.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 706
+title = "Hamnet"
+author = "Maggie O'Farrell"
+description = "Editorial Libros del Asteroide"
+hasBeenRead = true
+imageNames = [ "hamnet1.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 707
+title = "Rebelión en la granja"
+author = "George Orwell"
+description = "Editorial Debolsillo"
+hasBeenRead = true
+imageNames = [ "rebelion-granja.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 708
+title = "Aquí no es Miami"
+author = "Fernanda Melchor"
+description = "Editorial Random House"
+hasBeenRead = true
+imageNames = [ "aqui-no-es-miami.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 709
+title = "La invención de un lector"
+author = "Cecilia Fanti"
+description = "Editorial Gris Tormenta"
+hasBeenRead = true
+imageNames = [ "invencion-lector.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 710
+title = "Páradais"
+author = "Fernanda Melchor"
+description = "Editorial Debolsillo"
+hasBeenRead = true
+imageNames = [ "paradais.jpg" ]
+addedOn = "2024-11-10"
+
+[[book]]
+id = 711
+title = "Temporada de Huracanes"
+author = "Fernanda Melchor"
+description = "Editorial Debolsillo"
+hasBeenRead = true
+imageNames = [ "temporada-huracanes.jpg" ]
+addedOn = "2024-11-10"
