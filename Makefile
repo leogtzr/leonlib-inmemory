@@ -24,5 +24,8 @@ cover:
 run:
 	./"${BIN_FILE}"
 
+build_search:
+	@go build -o cmd/search/search cmd/search/search.go
+
 lint:
 	golangci-lint run --enable-all
