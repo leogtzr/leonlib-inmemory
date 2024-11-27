@@ -6256,3 +6256,48 @@ description = "Editorial Debolsillo"
 hasBeenRead = true
 imageNames = [ "temporada-huracanes.jpg" ]
 addedOn = "2024-11-10"
+
+[[book]]
+id = 712
+title = "Las batallas en el desierto"
+author = "José Emiliio Pacheco"
+description = "Editorial Era"
+hasBeenRead = true
+imageNames = [ "batallas-desierto-era.jpg" ]
+addedOn = "2024-11-26"
+
+[[book]]
+id = 713
+title = "La verdad sobre el caso Harry Quebert"
+author = "Joël Dicker"
+description = "Editorial Alfaguara"
+hasBeenRead = false
+imageNames = [ "harry-quebert-alfaguara.jpg" ]
+addedOn = "2024-11-26"
+
+[[book]]
+id = 714
+title = "El monstruo pentápodo"
+author = "Liliana Blum"
+description = "Editorial Planeta Mexicana"
+hasBeenRead = true
+imageNames = [ "monstruo-pentapodo-planetamexicana.jpg" ]
+addedOn = "2024-11-26"
+
+[[book]]
+id = 715
+title = "El monstruo pentápodo"
+author = "Liliana Blum"
+description = "Editorial Planeta Mexicana"
+hasBeenRead = true
+imageNames = [ "monstruo-pentapodo-planetamexicana.jpg" ]
+addedOn = "2024-11-26"
+
+[[book]]
+id = 716
+title = "La vegetariana"
+author = "Han Kang"
+description = "Editorial Random House"
+hasBeenRead = false
+imageNames = [ "vegetariana-han-kang-random-house.jpg" ]
+addedOn = "2024-11-26"
